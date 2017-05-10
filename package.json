@@ -1,5 +1,5 @@
 {
-  "name": "ctp",
+  "name": "nodectp",
   "version": "0.0.0",
   "description": "Futures CTP API wraped by node.js",
   "main": "app.js",
