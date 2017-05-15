@@ -17,7 +17,7 @@ function Trade(ctp, userID) {
 	  	InvestorID: data.UserID,
 	  	ConfirmDate: data.TradingDay,
 	  	ConfirmTime: data.SHFETime
-	  });
+	  }, this.ctp.nRequestID());
 	  // ctp.td.ReqQryTradingAccount(account, ctp.nRequestID());
 	  //logger.info('ReqQryTradingAccount=', ctp.td.ReqQryTradingAccount(q, (new Date()).valueOf()/1000));
 	  //sleep(2000);
@@ -76,7 +76,7 @@ function Trade(ctp, userID) {
 		// 在这里查资金状况, 根据判断发出通知和出金改密操作
 		// 平仓: OffsetFlag==3, 开仓: OffsetFlag==0
 		data.OffsetFlag && this.ctp.td.ReqQryTradingAccount(this.ctp.getAccountByUserID(data.InvestorID), this.ctp.nRequestID());
-	  logger.info('OnRtnTrade:',  data);
+	  logger.info('OnRtnTrade:',  data, this.ctp);
 	};
 
 	this.OnRspQryTradingAccount = function(data, rsp, nRequestID, bIsLast) {
