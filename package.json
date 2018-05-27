@@ -1,5 +1,5 @@
 {
-  "name": "nodectp",
+  "name": "edonctp",
   "version": "0.0.1",
   "description": "ctp lib based on nodejs",
   "main": "index.js",
