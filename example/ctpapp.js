@@ -1,19 +1,3 @@
-# compile
-```
-node-gyp rebuild
-
-```
-
-# execute
-run example
-```
-node ./example/ctpapp.js
-
-```
-
-# Example
-请参看example目录下示例
-```
 const CtpClass = require('../index').Ctp;
 const Market = require('./mymarket');
 const Trade = require('./mytrade');
@@ -53,4 +37,3 @@ let { md, td } = ctp;
 td.ReqXXXXXX();
 // 调用行情相关接口, 具体有哪些接口请参看CTP文档
 md.ReqXXXXXX();
-```
