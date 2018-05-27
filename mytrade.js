@@ -10,7 +10,7 @@ function Trade(ctp, userID) {
 (function() {
 
 	this.OnRspUserLogin = function(data, rsp, nRequestID, bIsLast) {
-	  logger.info('OnRspUserLogin : %j, %j, %s, %s', data, rsp, nRequestID, bIsLast);
+	  this.$superMethod(arguments);
 	  // 投资者结算结果确认, 做完这一步才可以进行正常的交易
 	  this.ctp.td.ReqSettlementInfoConfirm({
 	  	BrokerID: data.BrokerID,
@@ -65,7 +65,7 @@ function Trade(ctp, userID) {
 	};
 
 	this.OnRspUserLogout = function(data, rsp, nRequestID, bIsLast) {
-	  logger.info('OnRspUserLogout : %j, %j, %s, %s', data, rsp, nRequestID, bIsLast);
+		this.$superMethod(arguments);
 	};
 	// 报单通知
 	this.OnRtnOrder = function(data) {
@@ -76,20 +76,20 @@ function Trade(ctp, userID) {
 		// 在这里查资金状况, 根据判断发出通知和出金改密操作
 		// 平仓: OffsetFlag==3, 开仓: OffsetFlag==0
 		data.OffsetFlag != 0 && this.ctp.td.ReqQryTradingAccount(this.ctp.getAccountByUserID(data.InvestorID), this.ctp.nRequestID());
-	  logger.info('OnRtnTrade:',  data, this.ctp);
+	  this.$superMethod(arguments);
 	};
 
 	this.OnRspQryTradingAccount = function(data, rsp, nRequestID, bIsLast) {
-		logger.info('OnRspQryTradingAccount: %j, %j, %s, %s',  data, rsp, nRequestID, bIsLast);
-		tevent.emit('/trade/ReqQryTradingAccount', data);
+		this.$superMethod(arguments);
+		this.$superMethod(arguments);
 	};
 
 	this.OnRspFromFutureToBankByFuture = function(data, rsp, nRequestID, bIsLast) {
-		logger.info('OnRspFromFutureToBankByFuture: %j, %j, %s, %s',  data, rsp, nRequestID, bIsLast);
+		this.$superMethod(arguments);
 	};
 
 	this.OnRspFromBankToFutureByFuture = function(data, rsp, nRequestID, bIsLast) {
-		logger.info('OnRspFromBankToFutureByFuture: %j, %j, %s, %s',  data, rsp, nRequestID, bIsLast);
+		this.$superMethod(arguments);
 		// ctp.td.ReqTradingAccountPasswordUpdate({
 		// 	BrokerID: '4040',
 		// 	AccountID: '',
@@ -100,7 +100,7 @@ function Trade(ctp, userID) {
 	};
 
 	this.OnRspTradingAccountPasswordUpdate = function(data, rsp, nRequestID, bIsLast) {
-		logger.info('OnRspTradingAccountPasswordUpdate: %j, %j, %s, %s',  data, rsp, nRequestID, bIsLast)
+		this.$superMethod(arguments);
 	};
 }).call(Trade.prototype);
 
