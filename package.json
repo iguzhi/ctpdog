@@ -21,7 +21,8 @@
   },
   "keywords": [
     "ctp",
-    "nodectp"
+    "nodectp",
+    "edonctp"
   ],
   "bugs": {
     "url": "https://github.com/iamweilee/nodectp/issues"
