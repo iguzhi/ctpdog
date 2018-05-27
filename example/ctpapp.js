@@ -32,8 +32,8 @@ new Trade(
 ctp.registerMdFront();
 ctp.registerTdFront();
 
-let { md, td } = ctp;
-// 调用交易相关接口, 具体有哪些接口请参看CTP文档
-td.ReqXXXXXX();
-// 调用行情相关接口, 具体有哪些接口请参看CTP文档
-md.ReqXXXXXX();
+// let { md, td } = ctp;
+// // 调用交易相关接口, 具体有哪些接口请参看CTP文档
+// td.ReqXXXXXX();
+// // 调用行情相关接口, 具体有哪些接口请参看CTP文档
+// md.ReqXXXXXX();

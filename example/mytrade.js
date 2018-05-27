@@ -1,4 +1,4 @@
-const logger = require('../index').logger.app;
+const logger = require('../index').logger.getLogger('app');
 const ee = require('../index').ee;
 
 const Class = require('iguzhi/class');
