@@ -1,7 +1,9 @@
 {
   "name": "edonctp",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "ctp lib based on nodejs",
+  "author": "weilee",
+  "license": "MIT",
   "main": "index.js",
   "gypfile": true,
   "dependencies": {
@@ -9,5 +11,20 @@
     "iguzhi": "^0.0.5",
     "log4js": "^2.7.0",
     "nodemailer": "^4.6.5"
-  }
+  },
+  "scripts": {
+    "rebuild": "node-gyp rebuild"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamweilee/nodectp.git"
+  },
+  "keywords": [
+    "ctp",
+    "nodectp"
+  ],
+  "bugs": {
+    "url": "https://github.com/iamweilee/nodectp/issues"
+  },
+  "homepage": "https://github.com/iamweilee/nodectp#readme"
 }
