@@ -1,3 +1,6 @@
+# warning
+目前仅支持linux平台
+
 # compile
 ```
 node-gyp rebuild
