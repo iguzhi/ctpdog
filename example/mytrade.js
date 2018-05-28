@@ -1,7 +1,23 @@
-const logger = require('../index').logger.getLogger('app');
+const logger = require('../index').logger.getLogger('trade');
 const { ee, Trade } = require('../index');
 
 class MyTrade extends Trade {
+
+	OnFrontConnected() {
+		super.OnFrontConnected(...arguments);
+		let { investor, td, setting } = this.ctp;
+		// 登录失败达到maxTryLoginTimes次, 则释放该账户的ctp对象
+		if (!investor.tryLoginTimes || investor.tryLoginTimes < setting.maxTryLoginTimes) {
+			investor.tryLoginTimes = investor.tryLoginTimes || 0;
+			investor.tryLoginTimes++;
+			
+			logger.info('ReqUserLogin : %s', td.ReqUserLogin(investor, this.ctp.nRequestID()));
+		}
+		else {
+			td.Release();
+			logger.info('Try ReqUserLogin %s times by Investor: %j, but failed!', setting.maxTryLoginTimes, investor);
+		}
+	}
 
 	OnRspUserLogin(data, rsp, nRequestID, bIsLast) {
 	  super.OnRspUserLogin(...arguments);

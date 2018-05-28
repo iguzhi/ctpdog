@@ -9,18 +9,26 @@ let ctp = new CtpClass(
         }
     },
     {
-        InvestorID: '0060000123',
+        InvestorID: '369888',
         Password: '123456'
     }
 );
 
-ctp.createTdApi();
+// ctp.createTdApi();
 ctp.createMdApi();
 
-let td = ctp.td;
-let md = ctp.md;
+// let td = ctp.td;
+// let md = ctp.md;
 
-console.log(td)
-for(let i in td) {
-    console.log(i)
-};
+// console.log(td)
+// for(let i in td) {
+//     console.log(i)
+// };
+
+ctp.md.On('OnFrontConnected', function() {
+
+    let { md, investor } = ctp;
+    console.log('ReqUserLogin : %s', md.ReqUserLogin(investor, ctp.nRequestID()));
+    console.log('OnFrontConnected');
+})
+ctp.registerMdFront();

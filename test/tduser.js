@@ -93,7 +93,7 @@ tduser.On("OnErrRtnOrderAction", function(data, Rsp, nRequestID, bIsLast){
 });
 
 console.log("version : ", tduser.GetApiVersion());
-tduser.RegisterFront("tcp://180.166.103.21:51205");
+tduser.RegisterFront("tcp://180.166.103.21:51213");
 //THOST_TERT_RESTART:从本交易日开始重传 0
 //THOST_TERT_RESUME:从上次收到的续传    1
 //THOST_TERT_QUICK:只传送登录后私有流的内容 2
