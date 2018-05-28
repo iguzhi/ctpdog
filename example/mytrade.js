@@ -1,16 +1,10 @@
 const logger = require('../index').logger.getLogger('app');
-const ee = require('../index').ee;
+const { ee, Trade } = require('../index');
 
-const Class = require('iguzhi/class');
+class MyTrade extends Trade {
 
-function Trade(ctp, { privateTopicMode, publicTopicModel }) {
-	this.$superConstructor(arguments);
-}
-
-(function() {
-
-	this.OnRspUserLogin = function(data, rsp, nRequestID, bIsLast) {
-	  this.$superMethod(arguments);
+	OnRspUserLogin(data, rsp, nRequestID, bIsLast) {
+	  super.OnRspUserLogin(...arguments);
 
 	  let investor = this.ctp.investor;
 	  // 投资者结算结果确认, 做完这一步才可以进行正常的交易
@@ -64,35 +58,35 @@ function Trade(ctp, { privateTopicMode, publicTopicModel }) {
 		// 	CurrencyID: 'CNY',
 		// 	TradeAmount: 2000
 		// }, ctp.nRequestID());
-	};
+	}
 
-	this.OnRspUserLogout = function(data, rsp, nRequestID, bIsLast) {
-		this.$superMethod(arguments);
-	};
+	OnRspUserLogout(data, rsp, nRequestID, bIsLast) {
+		super.OnRspUserLogout(...arguments);
+	}
 	// 报单通知
-	this.OnRtnOrder = function(data) {
-		this.$superMethod(arguments);
+	OnRtnOrder(data) {
+		super.OnRtnOrder(...arguments);
 	  // logger.info('OnRtnOrder: %j',  data)
-	};
+	}
 	// 成交通知
-	this.OnRtnTrade = function(data) {
-		this.$superMethod(arguments);
+	OnRtnTrade(data) {
+		super.OnRtnTrade(...arguments);
 		// 在这里查资金状况, 根据判断发出通知和出金改密操作
 		// 平仓: OffsetFlag==3, 开仓: OffsetFlag==0
 		data.OffsetFlag != 0 && this.ctp.td.ReqQryTradingAccount(this.ctp.investor, this.ctp.nRequestID());
 	  
-	};
+	}
 
-	this.OnRspQryTradingAccount = function(data, rsp, nRequestID, bIsLast) {
-		this.$superMethod(arguments);
-	};
+	OnRspQryTradingAccount(data, rsp, nRequestID, bIsLast) {
+		super.OnRspQryTradingAccount(...arguments);
+	}
 
-	this.OnRspFromFutureToBankByFuture = function(data, rsp, nRequestID, bIsLast) {
-		this.$superMethod(arguments);
-	};
+	OnRspFromFutureToBankByFuture(data, rsp, nRequestID, bIsLast) {
+		super.OnRspFromFutureToBankByFuture(...arguments);
+	}
 
-	this.OnRspFromBankToFutureByFuture = function(data, rsp, nRequestID, bIsLast) {
-		this.$superMethod(arguments);
+	OnRspFromBankToFutureByFuture(data, rsp, nRequestID, bIsLast) {
+		super.OnRspFromBankToFutureByFuture(...arguments);
 		// ctp.td.ReqTradingAccountPasswordUpdate({
 		// 	BrokerID: '4040',
 		// 	AccountID: '',
@@ -100,13 +94,12 @@ function Trade(ctp, { privateTopicMode, publicTopicModel }) {
 		// 	NewPassword: '',
 		// 	CurrencyID: ''
 		// }, ctp.nRequestID());
-	};
+	}
 
-	this.OnRspTradingAccountPasswordUpdate = function(data, rsp, nRequestID, bIsLast) {
-		this.$superMethod(arguments);
-	};
-}).call(Trade.prototype);
+	OnRspTradingAccountPasswordUpdate(data, rsp, nRequestID, bIsLast) {
+		super.OnRspTradingAccountPasswordUpdate(...arguments);
+	}
 
-Class.inherit(Trade, require('../index').Trade);
+}
 
-module.exports = Trade;
+module.exports = MyTrade;
