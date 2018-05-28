@@ -9,8 +9,8 @@ let ctp = new CtpClass(
         }
     },
     {
-        InvestorID: '0060000183',
-        Password: 'iguzhi-1288'
+        InvestorID: '0060000123',
+        Password: '123456'
     }
 );
 

@@ -8,7 +8,7 @@ let smtp = {
     secure: true,
     auth: {
         user: 'admin@iguzhi.cn',
-        pass: 'Weiwei-1202'
+        pass: '123456'
     }
 };
 

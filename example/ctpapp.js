@@ -17,9 +17,6 @@ let ctp = new CtpClass(
     }
 );
 
-ctp.createMdApi();
-ctp.createTdApi();
-
 new Market(ctp);
 new Trade(
     ctp,
@@ -29,8 +26,6 @@ new Trade(
     }
 );
 
-ctp.registerMdFront();
-ctp.registerTdFront();
 
 // let { md, td } = ctp;
 // // 调用交易相关接口, 具体有哪些接口请参看CTP文档
