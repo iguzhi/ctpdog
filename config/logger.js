@@ -6,6 +6,7 @@ module.exports = {
 		ctp: 'INFO',
 		app: 'INFO',
 		email: 'INFO',
+		sql: 'INFO',
 		schedule: 'INFO'
 	}
 };
