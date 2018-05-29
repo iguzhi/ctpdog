@@ -7,6 +7,7 @@ module.exports = {
 		app: 'INFO',
 		email: 'INFO',
 		sql: 'INFO',
+		websocket: 'INFO',
 		schedule: 'INFO'
 	}
 };
