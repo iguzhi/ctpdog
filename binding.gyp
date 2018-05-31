@@ -5,12 +5,8 @@
       "sources": [ "src/shifctp.cpp",  "src/ThostFtdcMdSpiI.cpp", "src/WrapMd.cpp",  "src/ThostFtdcTraderSpiI.cpp", "src/WrapTd.cpp"],
       "conditions": [
         ["OS=='linux'", {
-          "targets": [
-            {
-              "libraries":["$(CURDIR)/../v6.3.11_20180109_api_tradeapi_linux64/thostmduserapi.so", "$(CURDIR)/../v6.3.11_20180109_api_tradeapi_linux64/thosttraderapi.so"],
-              "include_dirs":["v6.3.11_20180109_api_tradeapi_linux64", "src"]
-            }
-          ]
+          "libraries":["$(CURDIR)/../v6.3.11_20180109_api_tradeapi_linux64/thostmduserapi.so", "$(CURDIR)/../v6.3.11_20180109_api_tradeapi_linux64/thosttraderapi.so"],
+          "include_dirs":["v6.3.11_20180109_api_tradeapi_linux64", "src"]
         }],
         ["OS=='win'", {
           "conditions": [
@@ -23,12 +19,8 @@
             }]
           ]
         }, { # OS != "win"
-          "targets": [
-            {
-              "libraries":["$(CURDIR)/../v6.3.11_20180109_api_tradeapi_linux64/thostmduserapi.so", "$(CURDIR)/../v6.3.11_20180109_api_tradeapi_linux64/thosttraderapi.so"],
-              "include_dirs":["v6.3.11_20180109_api_tradeapi_linux64", "src"]
-            }
-          ]
+          "libraries":["$(CURDIR)/../v6.3.11_20180109_api_tradeapi_linux64/thostmduserapi.so", "$(CURDIR)/../v6.3.11_20180109_api_tradeapi_linux64/thosttraderapi.so"],
+          "include_dirs":["v6.3.11_20180109_api_tradeapi_linux64", "src"]
         }]
       ]
     }
