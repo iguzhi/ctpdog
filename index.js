@@ -1,3 +1,5 @@
+require('./tool/env');
+
 exports.Ctp = require('./lib/ctp');
 exports.Trade = require('./lib/trade');
 exports.Market = require('./lib/market');
