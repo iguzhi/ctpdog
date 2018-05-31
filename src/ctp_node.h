@@ -17,6 +17,26 @@ class CSFunction
 
 public:
 
+#ifdef WIN32
+#include <windows.h>
+static string GBK2UTF8(string strGBK)  
+{  
+    string strOutUTF8 = "";  
+    WCHAR * str1;  
+    int n = MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, NULL, 0);  
+    str1 = new WCHAR[n];  
+    MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, str1, n);  
+    n = WideCharToMultiByte(CP_UTF8, 0, str1, -1, NULL, 0, NULL, NULL);  
+    char * str2 = new char[n];  
+    WideCharToMultiByte(CP_UTF8, 0, str1, -1, str2, n, NULL, NULL);  
+    strOutUTF8 = str2;  
+    delete[]str1;  
+    str1 = NULL;  
+    delete[]str2;  
+    str2 = NULL;  
+    return strOutUTF8;  
+}  
+#else
 static string GBK2UTF8(string src)
 {
     if(src.length() < 1) return "";
@@ -37,6 +57,7 @@ static string GBK2UTF8(string src)
     delete dest;
     return tmp;
 }
+#endif
 
 static void set_struct(Local<Object>& obj, const char* key, void* dest, int len)
 {
@@ -44,6 +65,7 @@ static void set_struct(Local<Object>& obj, const char* key, void* dest, int len)
     Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
     if (v->IsUndefined())
     {
+        memset(dest, 0, len);
         //isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, string("Wrong arguments->") + key)));
         return ;
     }
@@ -58,6 +80,7 @@ static void set_struct(Local<Object>& obj, const char* key, char* dest, int len)
     Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
     if (v->IsUndefined())
     {
+        memset(dest, 0, len);
         //isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, string("Wrong arguments->") + key)));
         return ;
     }
@@ -72,6 +95,7 @@ static void set_struct(Local<Object>& obj, const char* key, int* dest, int len=0
     Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
     if (v->IsUndefined())
     {
+        dest = 0;
         //isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, string("Wrong arguments->") + key)));
         return ;
     }
@@ -84,6 +108,7 @@ static void set_struct(Local<Object>& obj, const char* key, double* dest, int le
     Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
     if (v->IsUndefined() || !v->IsNumber())
     {
+        dest = 0;
         //isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, string("Wrong arguments->") + key)));
         return ;
     }
@@ -96,10 +121,11 @@ static void set_struct(Local<Object>& obj, const char* key, float* dest, int len
     Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
     if (v->IsUndefined() || !v->IsNumber())
     {
+        dest = 0;
         //isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, string("Wrong arguments->") + key)));
         return ;
     }
-    *dest = v->NumberValue();
+    *dest = (float)v->NumberValue();
 }
 
 
