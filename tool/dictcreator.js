@@ -7,7 +7,7 @@ const os = require('os');
 const spliter = os === 'win32' ? '\r\n' : '\n';
 
 function create() {
-  let filepath_ThostFtdcUserApiDataType = path.join(__dirname, '../linux_api_trade_6.3.6/ThostFtdcUserApiDataType.h');
+  let filepath_ThostFtdcUserApiDataType = path.join(__dirname, '../v6.3.11_20180109_api_tradeapi_linux64/ThostFtdcUserApiDataType.h');
 
   fs.readFile(filepath_ThostFtdcUserApiDataType, 'utf8', (err, data) => {
     if (err) throw err;
@@ -23,7 +23,8 @@ function create() {
       // }
     }
 
-    let text = "'use strict';\n";
+    let dictText = "'use strict';\n";
+    let enumText = "'use strict';\n\nconst Enum = require('microenum');\n";
     let description;
     let inDict = false;
 
@@ -36,8 +37,10 @@ function create() {
           description = trim(nextLine);
           line = line.replace(/^TFtdc/, '').replace('是一个', ' ');
           let arr = line.split(/\s/);
-          text += "\n// " + arr[1] + "\n";
-          text += "exports." + arr[0] + " = {";
+          dictText += "\n// " + arr[1] + "\n";
+          enumText += "\n// " + arr[1] + "\n";
+          dictText += "exports." + arr[0] + " = {";
+          enumText += "exports." + arr[0] + " = new Enum(";
           // i += 1;
           inDict = true;
         }
@@ -47,16 +50,17 @@ function create() {
       }
       else if (inDict) {
         if (description && /^#define\s/.test(line)) {
-          let words = line.split(/\s/);
-          if (words.length === 3) {
-            let value = words[words.length - 1];
+          let words = line.split(/\s+/);
+          if (words.length >= 3) {
+            let value = words[2];
             value = trim(value);
-            let key = words[words.length - 2];
+            let key = words[1];
             let keys = key.split(/_/);
             key = keys[keys.length - 1];
             key = trim(key);
-            text += "\n  // " + description + "\n";
-            text += "  " + key + ": " + value + ",";
+            dictText += "\n  // " + description + "\n";
+            dictText += "  " + key + ": " + value + ",";
+            enumText += "\n  { alias: '" + key + "', value: " + value + ", text: '" + description + "' },";
             description = '';
           }
         }
@@ -64,15 +68,21 @@ function create() {
           description = trim(line);
         }
         else if(/^typedef/.test(line)) {
-          text += "\n};\n";
+          dictText += "\n};\n";
+          enumText += "\n);\n";
           inDict = false;
         }
       }
     }
 
-    fs.writeFile(path.join(__dirname, '../lib/dict.js'), text, function(err) {
+    fs.writeFile(path.join(__dirname, '../lib/dict.js'), dictText, function(err) {
       if (err) throw err;
       console.log('generate UserApiDataType Dict File success!');
+    });
+
+    fs.writeFile(path.join(__dirname, '../lib/enum.js'), enumText, function(err) {
+      if (err) throw err;
+      console.log('generate UserApiDataType Enum File success!');
     });
   });
 }
@@ -83,3 +93,5 @@ function trim(value) {
 }
 
 exports.create = create;
+
+create()
