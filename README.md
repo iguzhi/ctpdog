@@ -17,3 +17,8 @@ node ./example/ctpapp.js
 
 # Example
 请参看[example](https://github.com/iamweilee/nodectp-example.git)
+
+# version
+
+windows: 20180109_tradeapi_windows、20180109_tradeapi64_windows
+linux: v6.3.11_20180109_api_tradeapi_linux64
