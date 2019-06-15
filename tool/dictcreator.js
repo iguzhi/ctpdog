@@ -7,7 +7,7 @@ const os = require('os');
 const spliter = os === 'win32' ? '\r\n' : '\n';
 
 function create() {
-  let filepath_ThostFtdcUserApiDataType = path.join(__dirname, '../tradeapi_linux64/ThostFtdcUserApiDataType.h');
+  let filepath_ThostFtdcUserApiDataType = path.join(__dirname, '../api/tradeapi_linux64/ThostFtdcUserApiDataType.h');
 
   fs.readFile(filepath_ThostFtdcUserApiDataType, 'utf8', (err, data) => {
     if (err) throw err;
