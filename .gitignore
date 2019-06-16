@@ -5,3 +5,4 @@ logs
 con
 *.con
 package-lock.json
+.vscode
