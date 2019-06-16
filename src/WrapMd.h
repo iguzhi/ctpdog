@@ -1,10 +1,10 @@
-/////////////////////////////////////////////////////////////////////////
-///@system ctp ĞĞÇénodejs addon
-///@company »ÛÍø»ù½ğ
+ï»¿/////////////////////////////////////////////////////////////////////////
+///@system ctp è¡Œæƒ…nodejs addon
+///@company æ…§ç½‘åŸºé‡‘
 ///@file WrapMd.h
-///@brief js»Øµ÷½Ó¿Ú
+///@brief jså›è°ƒæ¥å£
 ///@history 
-///20160326	dreamyzhang		´´½¨¸ÃÎÄ¼ş
+///20160326	dreamyzhang		åˆ›å»ºè¯¥æ–‡ä»¶
 /////////////////////////////////////////////////////////////////////////
 #ifndef __WRAPMD_H__
 #define __WRAPMD_H__
@@ -35,7 +35,7 @@ class WrapMd : public CThostFtdcMdSpiI, public node::ObjectWrap
         WrapMd();
         ~WrapMd();
 
-        //wrapÖ÷¶¯ÇëÇóº¯Êı
+        //wrapä¸»åŠ¨è¯·æ±‚å‡½æ•°
         static void On(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void NewInstance(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void Init(v8::Isolate* isolate);
@@ -56,7 +56,7 @@ class WrapMd : public CThostFtdcMdSpiI, public node::ObjectWrap
         static void SubscribeForQuoteRsp(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void UnSubscribeForQuoteRsp(const v8::FunctionCallbackInfo<v8::Value>& args);
         
-        //»Øµ÷js²¿·Ö
+        //å›è°ƒjséƒ¨åˆ†
         virtual void MainOnFrontConnected();
         virtual void MainOnFrontDisconnected(int nReason);
         virtual void MainOnHeartBeatWarning(int nTimeLapse);
@@ -82,10 +82,10 @@ class WrapMd : public CThostFtdcMdSpiI, public node::ObjectWrap
     private:
         typedef std::map<string, v8::Persistent<v8::Function> > __callback_type;
         typedef std::map<string, v8::Persistent<v8::Function> >::iterator  __callback_iter_type;
-        __callback_type callback_map; //»Øµ÷js nameÓ³Éä»Øµ÷´¦Àíº¯Êı
+        __callback_type callback_map; //å›è°ƒjs nameæ˜ å°„å›è°ƒå¤„ç†å‡½æ•°
         
-        static set<string>         m_event;                //¿ÉÒÔ×¢²áµÄ»Øµ÷ÊÂ¼ş
-        static v8::Persistent<v8::Function> constructor;           //Ö÷¶¯ÇëÇóº¯ÊıÓ³Éäjs name
+        static set<string>         m_event;                //å¯ä»¥æ³¨å†Œçš„å›è°ƒäº‹ä»¶
+        static v8::Persistent<v8::Function> constructor;           //ä¸»åŠ¨è¯·æ±‚å‡½æ•°æ˜ å°„js name
 
         static void New(const v8::FunctionCallbackInfo<v8::Value>& args);
         v8::Local<v8::Value> PkgRspInfo(CThostFtdcRspInfoField *pRspInfo) 

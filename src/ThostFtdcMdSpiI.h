@@ -1,10 +1,10 @@
-/////////////////////////////////////////////////////////////////////////
-///@system ctpĞĞÇénodejs addon
-///@company »ÛÍø»ù½ğ
+ï»¿/////////////////////////////////////////////////////////////////////////
+///@system ctpè¡Œæƒ…nodejs addon
+///@company æ…§ç½‘åŸºé‡‘
 ///@file ThostFtdcMdApiSpi.h
-///@brief ctpÏß³Ì¼°»Øµ÷
+///@brief ctpçº¿ç¨‹åŠå›è°ƒ
 ///@history 
-///20160326	dreamyzhang		´´½¨¸ÃÎÄ¼ş
+///20160326	dreamyzhang		åˆ›å»ºè¯¥æ–‡ä»¶
 /////////////////////////////////////////////////////////////////////////
 #ifndef __THOSTFTDCMDSPI_H__
 #define __THOSTFTDCMDSPI_H__
@@ -35,13 +35,13 @@ namespace md
 
 class CThostFtdcMdSpiI;
 
-//ÒÔapiÀ´»®·Ö½á¹¹Ìå
+//ä»¥apiæ¥åˆ’åˆ†ç»“æ„ä½“
 struct taskdata
 {
     taskdata(CThostFtdcMdSpiI* p){handle.data = this; pmd = p;}
     CThostFtdcMdSpiI* pmd;
     uv_async_t handle;
-    string api;             //±íÊ¾ÊÇÄÇ¸öapi»Øµ÷
+    string api;             //è¡¨ç¤ºæ˜¯é‚£ä¸ªapiå›è°ƒ
     
     void reinit()
     {
@@ -64,7 +64,7 @@ struct taskdata
     }data;
     int nRequestID;
     bool bIsLast;
-    CThostFtdcRspInfoField RspInfo; //¹«ÓÃ·µ»Ø
+    CThostFtdcRspInfoField RspInfo; //å…¬ç”¨è¿”å›
 };
 
 class CThostFtdcMdSpiI : public CThostFtdcMdSpi 
@@ -81,7 +81,7 @@ class CThostFtdcMdSpiI : public CThostFtdcMdSpi
             uv_async_send(handle);
         }
 
-        //Ö÷Ïß³Ì»Øµ÷js´¦Àí
+        //ä¸»çº¿ç¨‹å›è°ƒjså¤„ç†
         virtual void MainOnFrontConnected() = 0;
         virtual void MainOnFrontDisconnected(int nReason) = 0;
         virtual void MainOnHeartBeatWarning(int nTimeLapse) = 0;
@@ -132,7 +132,7 @@ class CThostFtdcMdSpiI : public CThostFtdcMdSpi
         uint32_t task_size;
         uint32_t task_position;
 
-        CThostFtdcMdApi* 	m_pApi; 		        //½»Ò×ÇëÇó½á¹¹Ìå
+        CThostFtdcMdApi* 	m_pApi; 		        //äº¤æ˜“è¯·æ±‚ç»“æ„ä½“
 };
 }
 

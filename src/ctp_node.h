@@ -1,4 +1,4 @@
-#ifndef __NODE_CTP__
+ï»¿#ifndef __NODE_CTP__
 #define __NODE_CTP__
 
 #include <v8.h>
@@ -129,7 +129,7 @@ static void set_struct(Local<Object>& obj, const char* key, float* dest, int len
 }
 
 
-//´¦Àíctp¶¨ÒåµÄ×Ö·ûÊı×éÖ¸ÕëÀàĞÍ
+//å¤„ç†ctpå®šä¹‰çš„å­—ç¬¦æ•°ç»„æŒ‡é’ˆç±»å‹
 static void set_obj(v8::Local<v8::Object>& obj, const char* key, void* v)
 {
     string u = GBK2UTF8((char*)v);
