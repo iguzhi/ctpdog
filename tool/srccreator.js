@@ -6,8 +6,9 @@ const os = require('os');
 const fileHelper = require('./helper/filehelper');
 
 const spliter = os === 'win32' ? '\r\n' : '\n';
+const readFile = require("util").promisify(fs.readFile);
 
-function create() {
+async function create() {
   const data = {
     ctpNode_setterMethods_def: '#11',
     mdSpi_rspMethods_call: '#11',
@@ -34,75 +35,68 @@ function create() {
     wrapTd_rspMethodsInterface_def: '#22',
   };
 
+  data.ctpNode_setterMethods_def = await readUserApiStruct(); // ctp_node.h
   // TODO
   fileHelper.copyDir(path.join(__dirname, '../src_tpl'), path.join(__dirname, '../src'), data, '', true);
 }
 
-function readUserApiStruct() {
+async function readUserApiStruct() {
   let filepath = path.join(__dirname, '../api/tradeapi_linux64/ThostFtdcUserApiStruct.h');
 
-  fs.readFile(filepath, 'utf8', (err, data) => {
-    if (err) throw err;
-    data = data.replace(/\//g, '');
-    let lines = data.split(spliter);
+  let rsp = await readFile(filepath, 'utf8');
+  if (rsp instanceof Error) {
+    return;
+  }
 
-    for(let i = lines.length - 1; i >= 0; i--) {
-      if (/^\s*$/.test(lines[i])) {
-        lines.splice(i, 1);
-      }
-      // else {
-      //   lines[i] = lines[i].replace(/'/g, '"');
-      // }
+  rsp = rsp.replace(/\//g, '');
+  let lines = rsp.split(spliter);
+
+  // 删除空行
+  for(let i = lines.length - 1; i >= 0; i--) {
+    if (/^\s*$/.test(lines[i])) {
+      lines.splice(i, 1);
     }
+  }
 
-    let description;
+  let structName, fields = [], structMap = {};
 
-    for (let i = 0; i < lines.length - 1; i++) {
-      let line = lines[i];
-      let nextLine = lines[i + 1];
-      
-      if (/^TFtdc/.test(line)) {
-        if (/[\u4e00-\u9fa5]+/.test(nextLine)) {
-          description = trim(nextLine);
-          line = line.replace(/^TFtdc/, '').replace('是一个', ' ');
-          let arr = line.split(/\s/);
-          dictText += "\n// " + arr[1] + "\n";
-          enumText += "\n// " + arr[1] + "\n";
-          dictText += "exports." + arr[0] + " = {";
-          enumText += "exports." + arr[0] + " = new Enum(";
-          // i += 1;
-          inDict = true;
-        }
-        else {
-          description = '';
-        }
+  for (let i = 0; i < lines.length - 1; i++) {
+    let line = lines[i];
+    line = trim(line);
+    let words = splitWords(line);
+    let firstWord = words[0];
+    
+    if (firstWord === 'struct') {
+      structName = words[1];
+      continue;
+    }
+    if (structName) {
+      if (firstWord === '}') {
+        structMap[structName] = fields;
+        structName = null;
+        fields = [];
+        continue;
       }
-      else if (inDict) {
-        if (description && /^#define\s/.test(line)) {
-          let words = line.split(/\s+/);
-          if (words.length >= 3) {
-            let value = words[2];
-            value = trim(value);
-            let key = words[1];
-            let keys = key.split(/_/);
-            key = keys[keys.length - 1];
-            key = trim(key);
-            dictText += "\n  // " + description + "\n";
-            dictText += "  " + key + ": " + value + ",";
-            enumText += "\n  { alias: '" + key + "', value: " + value + ", text: '" + description + "' },";
-            description = '';
-          }
-        }
-        else if (/[\u4e00-\u9fa5]+/.test(line)) {
-          description = trim(line);
-        }
-        else if(/^typedef/.test(line)) {
-          dictText += "\n};\n";
-          enumText += "\n);\n";
-          inDict = false;
-        }
+      if (/^TThostFtdc/.test(firstWord)) {
+        fields.push(words[1]);
       }
     }
+  }
+
+  let results = [];
+
+  for(let structName in structMap) {
+    let fields = structMap[structName];
+
+    results.push(`static void set_obj(Local<Object>& obj, ${structName} *p)`);
+    results.push('{');
+    fields.forEach(function(fieldName) {
+      results.push(`  set_obj(obj, "${fieldName}", &p->${fieldName});`);
+    });
+    results.push('}');
+  }
+
+  return results.join('\n');
 }
 
 
@@ -114,6 +108,13 @@ function isChineseCharacters(text) {
   return /[\u4e00-\u9fa5]+/.test(text);
 }
 
+function splitWords(line) {
+  return line.split(/\s+|;/);
+}
+
 exports.create = create;
 
-create()
+// (async () => {
+//   await create();
+// })();
+create();
