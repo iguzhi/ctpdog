@@ -166,7 +166,7 @@ static void set_obj(v8::Local<v8::Object>& obj, const char* key, double* v)
 
 // AUTOCODE: set methods
 
-#11
+{{ctpNode_setterMethods_def}}
 
 };
 #endif

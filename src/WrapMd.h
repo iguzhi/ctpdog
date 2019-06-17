@@ -39,36 +39,13 @@ class WrapMd : public CThostFtdcMdSpiI, public node::ObjectWrap
         static void On(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void NewInstance(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void Init(v8::Isolate* isolate);
-    
-        static void Init(const v8::FunctionCallbackInfo<v8::Value>& args);
-        static void Release(const v8::FunctionCallbackInfo<v8::Value>& args);
-        static void Dispose(const v8::FunctionCallbackInfo<v8::Value>& args);
-        static void CreateFtdcMdApi(const v8::FunctionCallbackInfo<v8::Value>& args);                      
-        static void GetApiVersion(const v8::FunctionCallbackInfo<v8::Value>& args);                      
-        static void GetTradingDay(const v8::FunctionCallbackInfo<v8::Value>& args);                      
-        static void RegisterFront(const v8::FunctionCallbackInfo<v8::Value>& args);                      
-        static void RegisterNameServer(const v8::FunctionCallbackInfo<v8::Value>& args);                      
-        static void RegisterFensUserInfo(const v8::FunctionCallbackInfo<v8::Value>& args); 
-        static void ReqUserLogin(const v8::FunctionCallbackInfo<v8::Value>& args);
-        static void ReqUserLogout(const v8::FunctionCallbackInfo<v8::Value>& args);
-        static void SubscribeMarketData(const v8::FunctionCallbackInfo<v8::Value>& args);
-        static void UnSubscribeMarketData(const v8::FunctionCallbackInfo<v8::Value>& args);
-        static void SubscribeForQuoteRsp(const v8::FunctionCallbackInfo<v8::Value>& args);
-        static void UnSubscribeForQuoteRsp(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+        // AUTOCODE: 主动请求
+        #22
         
         //回调js部分
-        virtual void MainOnFrontConnected();
-        virtual void MainOnFrontDisconnected(int nReason);
-        virtual void MainOnHeartBeatWarning(int nTimeLapse);
-        virtual void MainOnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
-        virtual void MainOnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
-        virtual void MainOnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
-        virtual void MainOnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
-        virtual void MainOnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
-        virtual void MainOnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
-        virtual void MainOnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
-        virtual void MainOnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData) ;
-        virtual void MainOnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp) ;
+        // AUTOCODE
+        #22
 
         bool CanCallback(string event)
         {

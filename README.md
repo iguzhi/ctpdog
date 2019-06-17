@@ -71,3 +71,9 @@ virtual int ReqUserLogin2(CThostFtdcReqUserLoginField *pReqUserLogin, int nReque
 
 ///用户口令更新请求2
 virtual int ReqUserPasswordUpdate2(CThostFtdcUserPasswordUpdateField *pUserPasswordUpdate, int nRequestID) = 0;
+
+### 如何更新ctp api?
+1. 从上期技术官网下载最新的库到api目录, 分别替换api目录三个子目录下的文件
+2. 运行`yarn src`或`npm run src`, 该脚本会根据src_tpl下的文件模板自动生成src目录下的文件
+2. 运行`yarn dict`或`npm run dict`, 该脚本会根据api下的ThostFtdcUserApiDataType.h文件生成字典js类
+3. 运行`yarn rebuild`或`npm run rebuild`, 该脚本会重新编译生成ctp的node addon

@@ -15,7 +15,9 @@
     "nodemailer": "^4.6.8"
   },
   "scripts": {
-    "rebuild": "node-gyp rebuild"
+    "rebuild": "node-gyp rebuild",
+    "dict": "node tool/dictcreator.js",
+    "src": "node tool/srccreator.js"
   },
   "repository": {
     "type": "git",
