@@ -57,7 +57,7 @@ struct taskdata
         int nReason;
         int nTimeLapse;
         // AUTOCODE: Struct
-        {{mdSpi_struct}}
+{{mdSpi_struct}}
     }data;
     int nRequestID;
     bool bIsLast;
@@ -81,9 +81,9 @@ class CThostFtdcMdSpiI : public CThostFtdcMdSpi
         //主线程回调js处理
         // AUTOCODE
 
-        {{mdSpi_mainRspMethodsInterface_def}}
+{{mdSpi_mainRspMethodsInterface_def}}
         
-        {{mdSpi_rspMethodsInterface_def}}
+{{mdSpi_rspMethodsInterface_def}}
         
         CThostFtdcMdApi* GetMdApi(){return m_pApi;}
         void setMdApi(CThostFtdcMdApi*  _m_pApi){ m_pApi = _m_pApi;}

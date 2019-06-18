@@ -41,11 +41,11 @@ class WrapMd : public CThostFtdcMdSpiI, public node::ObjectWrap
         static void Init(v8::Isolate* isolate);
 
         // AUTOCODE: 主动请求
-        {{wrapMd_reqMethodsInterface_def}}
+{{wrapMd_reqMethodsInterface_def}}
         
         //回调js部分
         // AUTOCODE
-        {{wrapMd_rspMethodsInterface_def}}
+{{wrapMd_rspMethodsInterface_def}}
 
         bool CanCallback(string event)
         {

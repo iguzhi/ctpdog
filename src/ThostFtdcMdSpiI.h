@@ -57,7 +57,11 @@ struct taskdata
         int nReason;
         int nTimeLapse;
         // AUTOCODE: Struct
-        #11
+        CThostFtdcRspUserLoginField RspUserLogin;
+        CThostFtdcUserLogoutField UserLogout;
+        CThostFtdcSpecificInstrumentField SpecificInstrument;
+        CThostFtdcDepthMarketDataField DepthMarketData;
+        CThostFtdcForQuoteRspField ForQuoteRsp;
     }data;
     int nRequestID;
     bool bIsLast;
@@ -81,9 +85,31 @@ class CThostFtdcMdSpiI : public CThostFtdcMdSpi
         //主线程回调js处理
         // AUTOCODE
 
-        #11
+        virtual void MainOnFrontConnected() = 0;
+        virtual void MainOnFrontDisconnected(int nReason) = 0;
+        virtual void MainOnHeartBeatWarning(int nTimeLapse) = 0;
+        virtual void MainOnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData) = 0;
+        virtual void MainOnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp) = 0;
         
-        #11
+        virtual void OnFrontConnected();
+        virtual void OnFrontDisconnected(int nReason);
+        virtual void OnHeartBeatWarning(int nTimeLapse);
+        virtual void OnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+        virtual void OnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+        virtual void OnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+        virtual void OnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+        virtual void OnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+        virtual void OnRspSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+        virtual void OnRspUnSubForQuoteRsp(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+        virtual void OnRtnDepthMarketData(CThostFtdcDepthMarketDataField *pDepthMarketData);
+        virtual void OnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp);
         
         CThostFtdcMdApi* GetMdApi(){return m_pApi;}
         void setMdApi(CThostFtdcMdApi*  _m_pApi){ m_pApi = _m_pApi;}

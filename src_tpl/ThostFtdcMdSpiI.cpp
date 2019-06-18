@@ -51,8 +51,10 @@ void CThostFtdcMdSpiI::on_async_cb(uv_async_t* handle)
     taskdata* task = (taskdata*)handle->data;
     //printf("on_async_cb api=%s\n", task->api.c_str());
     do{
-        // AUTOCODE: 调用响应函数
-        {{mdSpi_rspMethods_call}}
+    // AUTOCODE: 调用响应函数
+{{mdSpi_rspMethods_call}}
+
+        printf("ERROR:%s _on_completed\n", task->api.c_str());
     }while(0);
     //uv_close((uv_handle_t*)handle, on_uv_close_cb);
     task->reinit();
