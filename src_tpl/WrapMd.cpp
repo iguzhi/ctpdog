@@ -55,13 +55,14 @@ void WrapMd::Init(Isolate* isolate)
 
     // Prototype
     // AUTOCODE
-    {{wrapMd_setJsMethods}}
+{{wrapMd_setJsMethods}}
     NODE_SET_PROTOTYPE_METHOD(tpl, "On", On);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
     constructor.Reset(isolate, tpl->GetFunction());
 
     //注册回调函数的映射更新
     // AUTOCODE
-    {{wrapMd_addRspEvent}}
+{{wrapMd_addRspEvent}}
 }
 
 void WrapMd::New(const FunctionCallbackInfo<Value>& args)
@@ -126,6 +127,14 @@ void WrapMd::On(const FunctionCallbackInfo<Value>& args)
     obj->SetCallback(*eNameUtf8, cb, isolate);
     
     args.GetReturnValue().Set(Number::New(isolate, 0));
+}
+
+void WrapMd::Dispose(const v8::FunctionCallbackInfo<v8::Value>& args)                     
+{
+    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    Isolate* isolate = args.GetIsolate();
+    obj->dispose();
+    args.GetReturnValue().Set(Undefined(isolate));
 }
 
 #define REQ_WITH_REQID(req) \

@@ -44,6 +44,7 @@ namespace td
             static void On(const v8::FunctionCallbackInfo<v8::Value>& args);
             static void NewInstance(const v8::FunctionCallbackInfo<v8::Value>& args);
             static void Init(v8::Isolate* isolate);
+            static void Dispose(const v8::FunctionCallbackInfo<v8::Value>& args);
 
             ///////////////////////////////主动请求函数start//////////////////////////////////////////////////
             //参数传递以对象的形式

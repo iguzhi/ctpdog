@@ -75,6 +75,7 @@ class CThostFtdcTraderSpiI : public CThostFtdcTraderSpi
     void dispose() {
       m_pApi->RegisterSpi(NULL);
       m_pApi->Release();
+      m_pApi->Join(); // 是否需要
       m_pApi = NULL;
     }
     

@@ -54,6 +54,7 @@ void WrapTd::Init(v8::Isolate* isolate)
     // AUTOCODE
     #22
     NODE_SET_PROTOTYPE_METHOD(tpl, "On", On);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
     constructor.Reset(isolate, tpl->GetFunction());
 
     //注册回调函数的映射更新
@@ -123,6 +124,14 @@ void WrapTd::On(const FunctionCallbackInfo<Value>& args)
     obj->SetCallback(*eNameUtf8, cb, isolate);
 
     args.GetReturnValue().Set(Number::New(isolate, 0));
+}
+
+void WrapTd::Dispose(const FunctionCallbackInfo<Value>& args)
+{
+    WrapTd* obj = node::ObjectWrap::Unwrap<WrapTd>(args.Holder());
+    Isolate* isolate = args.GetIsolate();
+    obj->dispose();
+    args.GetReturnValue().Set(Undefined(isolate));
 }
 
 

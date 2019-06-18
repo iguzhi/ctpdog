@@ -55,13 +55,40 @@ void WrapMd::Init(Isolate* isolate)
 
     // Prototype
     // AUTOCODE
-    #22
+    NODE_SET_PROTOTYPE_METHOD(tpl, "CreateFtdcMdApi", CreateFtdcMdApi);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "GetApiVersion", GetApiVersion);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "Release", Release);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "Init", Init);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "Join", Join);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "GetTradingDay", GetTradingDay);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "RegisterFront", RegisterFront);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "RegisterNameServer", RegisterNameServer);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "RegisterFensUserInfo", RegisterFensUserInfo);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "RegisterSpi", RegisterSpi);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "SubscribeMarketData", SubscribeMarketData);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "UnSubscribeMarketData", UnSubscribeMarketData);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "SubscribeForQuoteRsp", SubscribeForQuoteRsp);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "UnSubscribeForQuoteRsp", UnSubscribeForQuoteRsp);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqUserLogin", ReqUserLogin);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqUserLogout", ReqUserLogout);
     NODE_SET_PROTOTYPE_METHOD(tpl, "On", On);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "Dispose", Dispose);
     constructor.Reset(isolate, tpl->GetFunction());
 
     //注册回调函数的映射更新
     // AUTOCODE
-    #22
+    m_event.insert("OnFrontConnected");
+    m_event.insert("OnFrontDisconnected");
+    m_event.insert("OnHeartBeatWarning");
+    m_event.insert("OnRspUserLogin");
+    m_event.insert("OnRspUserLogout");
+    m_event.insert("OnRspError");
+    m_event.insert("OnRspSubMarketData");
+    m_event.insert("OnRspUnSubMarketData");
+    m_event.insert("OnRspSubForQuoteRsp");
+    m_event.insert("OnRspUnSubForQuoteRsp");
+    m_event.insert("OnRtnDepthMarketData");
+    m_event.insert("OnRtnForQuoteRsp");
 }
 
 void WrapMd::New(const FunctionCallbackInfo<Value>& args)
@@ -126,6 +153,14 @@ void WrapMd::On(const FunctionCallbackInfo<Value>& args)
     obj->SetCallback(*eNameUtf8, cb, isolate);
     
     args.GetReturnValue().Set(Number::New(isolate, 0));
+}
+
+void WrapMd::Dispose(const v8::FunctionCallbackInfo<v8::Value>& args)                     
+{
+    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    Isolate* isolate = args.GetIsolate();
+    obj->dispose();
+    args.GetReturnValue().Set(Undefined(isolate));
 }
 
 #define REQ_WITH_REQID(req) \
