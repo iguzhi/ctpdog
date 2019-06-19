@@ -124,6 +124,8 @@ async function readMdApi() {
     wrapMd_reqMethodsInterface_def: [],
     wrapMd_setJsMethods: [],
     wrapMd_addRspEvent: [],
+    wrapMd_reqMethodsImpl_def: [],
+    wrapMd_mainRspMethodsImpl_def: [],
   };
 
   for (let i = 0; i < lines.length - 1; i++) {
@@ -242,6 +244,10 @@ async function readMdApi() {
     // TODO: 主动请求函数的处理
     resultsMap.wrapMd_reqMethodsInterface_def.push(`        static void ${funcName}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
     resultsMap.wrapMd_setJsMethods.push(`    NODE_SET_PROTOTYPE_METHOD(tpl, "${funcName}", ${funcName});`);
+    resultsMap.wrapMd_reqMethodsImpl_def.push(`void WrapMd::${funcName}(const FunctionCallbackInfo<Value>& args)`);
+    resultsMap.wrapMd_reqMethodsImpl_def.push('{');
+    resultsMap.wrapMd_reqMethodsImpl_def.push(``);
+    resultsMap.wrapMd_reqMethodsImpl_def.push('}');
   }
 
   return resultsMap;
@@ -268,29 +274,6 @@ function removeBlanks(list) {
   }
 }
 
-function getArgType(name) {
-  let type = name;
-  if (/^(?:CThostFtdc|char\*)/.test(name)) {
-    type = 'object';
-  }
-  return type;
-}
-
-// function getArgs(words) {
-//   let args = [];
-//   for (let i = 0; i < words.length - 2; i += 2) {
-//     let originType = words[i];
-//     let name = words[i + 1];
-//     let type = getArgType(originType);
-//     args.push({
-//       type,
-//       originType,
-//       originName: name,
-//       name: name.replace(/^p/, '')
-//     });
-//   }
-//   return args;
-// }
 
 function getArgs(words) {
   let args = [], argObj = {};

@@ -152,6 +152,14 @@ void WrapMd::On(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Number::New(isolate, 0));
 }
 
+void WrapMd::Dispose(const v8::FunctionCallbackInfo<v8::Value>& args)                     
+{
+    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
+    Isolate* isolate = args.GetIsolate();
+    obj->dispose();
+    args.GetReturnValue().Set(Undefined(isolate));
+}
+
 void WrapMd::Init(const v8::FunctionCallbackInfo<v8::Value>& args)                     
 {
     WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
@@ -165,14 +173,6 @@ void WrapMd::Release(const v8::FunctionCallbackInfo<v8::Value>& args)
     WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
     Isolate* isolate = args.GetIsolate();
     obj->GetMdApi()->Release();
-    args.GetReturnValue().Set(Undefined(isolate));
-}
-
-void WrapMd::Dispose(const v8::FunctionCallbackInfo<v8::Value>& args)                     
-{
-    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());
-    Isolate* isolate = args.GetIsolate();
-    obj->dispose();
     args.GetReturnValue().Set(Undefined(isolate));
 }
 
