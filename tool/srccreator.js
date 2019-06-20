@@ -18,17 +18,17 @@ async function create() {
     mdSpi_mainRspMethodsInterface_def: resultsMap.mdSpi_mainRspMethodsInterface_def.join('\n'),
     mdSpi_rspMethodsInterface_def: resultsMap.mdSpi_rspMethodsInterface_def.join('\n'),
     mdSpi_struct: resultsMap.mdSpi_struct.join('\n'),
-    traderSpi_rspMethods_call: '#11',
-    traderSpi_rspMethodsImpl_def: '#11',
-    traderSpi_struct: '#11',
-    traderSpi_mainRspMethodsInterface_def: '#11',
-    traderSpi_rspMethodsInterface_def: '#11',
     wrapMd_setJsMethods: resultsMap.wrapMd_setJsMethods.join('\n'),
     wrapMd_addRspEvent: resultsMap.wrapMd_addRspEvent.join('\n'),
     wrapMd_reqMethodsImpl_def: '#22',
     wrapMd_mainRspMethodsImpl_def: '#22',
     wrapMd_reqMethodsInterface_def: resultsMap.wrapMd_reqMethodsInterface_def.join('\n'),
     wrapMd_rspMethodsInterface_def: resultsMap.wrapMd_rspMethodsInterface_def.join('\n'),
+    traderSpi_rspMethods_call: '#11',
+    traderSpi_rspMethodsImpl_def: '#11',
+    traderSpi_struct: '#11',
+    traderSpi_mainRspMethodsInterface_def: '#11',
+    traderSpi_rspMethodsInterface_def: '#11',
     wrapTd_setJsMethods: '#22',
     wrapTd_addRspEvent: '#22',
     wrapTd_reqMethodsImpl_def: '#22',
@@ -239,14 +239,20 @@ async function readMdApi() {
   }
   for (let funcName in reqMethodsMap) {
     let { args, rtnObj } = reqMethodsMap[funcName];
-    let argsText = '', originArgsText = '';
+    let codeBody = '';
+    console.log('==========================================');
+    console.log(funcName);
+    console.log('args:\n', args);
+    console.log('rtnObj:\n', rtnObj);
     
     // TODO: 主动请求函数的处理
     resultsMap.wrapMd_reqMethodsInterface_def.push(`        static void ${funcName}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
     resultsMap.wrapMd_setJsMethods.push(`    NODE_SET_PROTOTYPE_METHOD(tpl, "${funcName}", ${funcName});`);
     resultsMap.wrapMd_reqMethodsImpl_def.push(`void WrapMd::${funcName}(const FunctionCallbackInfo<Value>& args)`);
     resultsMap.wrapMd_reqMethodsImpl_def.push('{');
-    resultsMap.wrapMd_reqMethodsImpl_def.push(``);
+    resultsMap.wrapMd_reqMethodsImpl_def.push('    WrapMd* obj = node::ObjectWrap::Unwrap<WrapMd>(args.Holder());');
+    resultsMap.wrapMd_reqMethodsImpl_def.push('    Isolate* isolate = args.GetIsolate();');
+    resultsMap.wrapMd_reqMethodsImpl_def.push(codeBody);
     resultsMap.wrapMd_reqMethodsImpl_def.push('}');
   }
 
@@ -262,10 +268,6 @@ function isChineseCharacters(text) {
   return /[\u4e00-\u9fa5]+/.test(text);
 }
 
-function splitWords(line) {
-  return line.split(/\s+|[;()*,]/);
-}
-
 function removeBlanks(list) {
   for(let i = list.length - 1; i >= 0; i--) {
     if (/^\s*$/.test(list[i])) {
@@ -277,9 +279,13 @@ function removeBlanks(list) {
 
 function getArgs(words) {
   let args = [], argObj = {};
+  console.log(words)
   while(words.length) {
     let s = words.shift();
-    if (s === '=') {
+    if (/^\s|true|false$/) {
+      continue;
+    }
+    if (s === ';') {
       break;
     }
     if (s === 'const') {
@@ -322,9 +328,30 @@ function getArgs(words) {
   return args;
 }
 
-exports.create = create;
+// function splitWords(line) {
+//   return line.split(/\s+|[(){}*,=]/);
+// }
+function splitWords(line) {
+  let characters = line.split('');
+  console.log(characters);
+  let rtnObj = {}, argObj = {};
+  let word = '', words = [];
+  characters.forEach((c, i) => {
+    if (/\s/.test(c)) {
+      if (word) {
+        words.push(word);
+        word = '';
+        console.log(words);
+      }
+      return;
+    }
+    word += c;
+  });
+}
 
 // (async () => {
 //   await create();
 // })();
-create();
+// create();
+let s = 'static CThostFtdcMdApi *CreateFtdcMdApi(const char *pszFlowPath = "", const bool bIsUsingUdp=false, const bool bIsMulticast=false);';
+splitWords(s);
