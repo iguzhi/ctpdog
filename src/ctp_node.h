@@ -115,7 +115,7 @@ static void set_struct(Local<Object>& obj, const char* key, double* dest, int le
     *dest = v->NumberValue();
 }
 
-static void set_struct(Local<Object>& obj, const char* key, float* dest, int len=0)
+static void set_struct(Local<Object>& obj, const char* key, * dest, int len=0)
 {
     v8::Isolate* isolate  = v8::Isolate::GetCurrent();
     Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));

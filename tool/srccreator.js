@@ -333,25 +333,187 @@ function getArgs(words) {
 // }
 function splitWords(line) {
   let characters = line.split('');
-  console.log(characters);
-  let rtnObj = {}, argObj = {};
-  let word = '', words = [];
+
+  let beforeArgCharacters = [], argCharacters;
+  for (let i = 0; i < characters.length; i++) {
+    let c = characters[i];
+    if (c === '(') {
+      argCharacters = [];
+      continue;
+    }
+    else if (c === ')') {
+      break;
+    }
+    
+    if (argCharacters) {
+      argCharacters.push(c);
+    }
+    else {
+      beforeArgCharacters.push(c);
+    }
+  }
+
+
+  let { words: beforeArgWords } = composeWord(beforeArgCharacters);
+  let { wordsList: argWordsList } = composeWord(argCharacters);
+
+  let rtn = parseRtnStatement(beforeArgWords);
+  let args = parseArgsStatement(argWordsList);
+
+  console.log(rtn);
+  console.log(args);
+  return { rtn, args };
+}
+
+function composeWord(characters) {
+  let word = '', lastCharacter = '', words = [], wordsList = [];
   characters.forEach((c, i) => {
-    if (/\s/.test(c)) {
+    switch(c) {
+      case ';':
+      lastCharacter = c;
+      break;
+      case '*':
+      if (lastCharacter === ' ') {
+        words[words.length - 1] += '*';
+      }
+      lastCharacter = c;
+      break;
+      case ',':
       if (word) {
         words.push(word);
         word = '';
-        console.log(words);
       }
-      return;
+
+      if (words.length) {
+        wordsList.push(words);
+        words = [];
+      }
+      
+      lastCharacter = c;
+      break;
+      case '=':
+      if (lastCharacter !== ' ') {
+        words.push(word);
+      }
+      words.push('=');
+      word = '';
+      lastCharacter = c;
+      break;
+      case '"':
+      word += '"';
+      lastCharacter = c;
+      break;
+      case '\'':
+      word += '\'';
+      lastCharacter = c;
+      break;
+      case ' ':
+      if (lastCharacter !== ' ' && word) {
+        words.push(word);
+        word = '';
+      }
+      lastCharacter = c;
+      break;
+      default:
+      word += c;
+      lastCharacter = c;
     }
-    word += c;
   });
+
+  word && words.push(word);
+  words.length && wordsList.push(words);
+  
+  return { words, wordsList };
+}
+
+function recognizeType(word) {
+  if (word === 'static') {
+    return { isStatic: true };
+  }
+  if (word === 'const') {
+    return { isConst: true };
+  }
+  if (/^void|int|bool|double|float|char|[a-zA-Z]+\*$/.test(word)) {
+    return { type: word, isPointer: /\*$/.test(word) };
+  }
+}
+
+function parseValue(word) {
+  if (word === 'true') {
+    return { defaultValue: true };
+  }
+
+  if (word === 'false') {
+    return { defaultValue: false };
+  }
+
+  if (word === '""' || word === '\'\'') {
+    return { defaultValue: '' };
+  }
+
+  if (/^[0-9]+(\.[0-9]+)?$/.test(word)) {
+    return { defaultValue: Number(word) };
+  }
+}
+
+function parseRtnStatement(words) {
+  let funcName = words.pop();
+  let funcLimiter = words.join(' ');
+  let result = {};
+  words.forEach(word => {
+    let data = recognizeType(word);
+    result = Object.assign({}, result, data);
+  });
+
+  result.funcName = funcName;
+  result.funcLimiter = funcLimiter;
+
+  return result;
+}
+
+function parseArgsStatement(wordsList) {
+  let args = [];
+  wordsList.forEach(words => {
+    let newWords = [], value, equalIndex;
+    words.forEach((word, i) => {
+      if (word !== '=' && (!equalIndex || i < equalIndex)) {
+        newWords.push(word);
+        return;
+      }
+      if (word === '=') {
+        equalIndex = i;
+        return;
+      }
+      if (i === equalIndex + 1) {
+        value = word;
+      }
+    });
+    
+    let result = {}, varName = newWords.pop(), varLimiter = newWords.join(' ');;
+    
+    newWords.forEach(word => {
+      let data = recognizeType(word);
+      result = Object.assign({}, result, data);
+    });
+
+    result.varName = varName;
+    result.varLimiter = varLimiter;
+
+    if (value) {
+      let valueObj = parseValue(value);
+      result.defaultValue = valueObj.defaultValue;
+      result.originDefaultValue = value;
+    }
+
+    args.push(result);
+  });
+
+  return args;
 }
 
 // (async () => {
 //   await create();
 // })();
 // create();
-let s = 'static CThostFtdcMdApi *CreateFtdcMdApi(const char *pszFlowPath = "", const bool bIsUsingUdp=false, const bool bIsMulticast=false);';
+let s = 'virtual int SubscribeMarketData(char *ppInstrumentID[], int nCount) = 0;';
 splitWords(s);
