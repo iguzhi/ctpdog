@@ -49,7 +49,7 @@ async function readUserApiStruct() {
     return;
   }
 
-  rsp = rsp.replace(/\//g, '');
+  rsp = rsp.replace(/[/]{2,}[^\r\n]*/g, '');
   let lines = rsp.split(spliter);
 
   // 删除空行
@@ -60,7 +60,7 @@ async function readUserApiStruct() {
   for (let i = 0; i < lines.length - 1; i++) {
     let line = lines[i];
     line = trim(line);
-    let words = splitWords(line);
+    let words = line.split(/\s+|;/);
     removeBlanks(words);
     let firstWord = words[0];
     
@@ -69,7 +69,7 @@ async function readUserApiStruct() {
       continue;
     }
     if (structName) {
-      if (firstWord === '}') {
+      if (/^\s*\}\s*;?/.test(firstWord)) {
         structMap[structName] = fields;
         structName = null;
         fields = [];
@@ -105,7 +105,7 @@ async function readMdApi() {
     return;
   }
 
-  rsp = rsp.replace(/\//g, '');
+  rsp = rsp.replace(/[/]{2,}[^\r\n]*/g, '');
   let lines = rsp.split(spliter);
 
   // 删除空行
@@ -130,25 +130,21 @@ async function readMdApi() {
 
   for (let i = 0; i < lines.length - 1; i++) {
     let line = lines[i];
-    line = trim(line);
-    let words = splitWords(line);
-    removeBlanks(words);
-    let firstWord = words[0];
     
-    if (firstWord === 'class' && words[1] === 'CThostFtdcMdSpi') {
+    if (startWith(line, 'class CThostFtdcMdSpi')) {
       rspMethodsMap = {};
       continue;
     }
     if (rspMethodsMap) {
-      if (firstWord === 'virtual' && words[1] === 'void' && /^On/.test(words[2])) {
-        let funcName = words[2];
-        rspMethodsMap[funcName] = getArgs(words.slice(3));
+      if (isFuncDefine(line)) {
+        let { rtn, args } = splitWords(line);
+        rspMethodsMap[rtn.funcName] = { rtn, args };
         continue;
       }
 
-      if (firstWord === 'class') {
+      if (isClassDefine(line)) {
         for (let funcName in rspMethodsMap) {
-          let args = rspMethodsMap[funcName];
+          let { args } = rspMethodsMap[funcName];
           let argsText = '', originArgsText = '', text = '', structText = '';
 
           args.forEach((item, i) => {
@@ -157,25 +153,25 @@ async function readMdApi() {
               originArgsText += ', ';
               text += '\n';
             }
-            if (item.type === 'object') {
-              if (item.name !== 'RspInfo') {
-                argsText += `&task->data.${item.name}`;
-                text += `  t->data.${item.name} = *${item.originName};`;
-                if (!structMap[item.originType]) {
-                  structMap[item.originType] = true;
-                  structText += `        ${item.originType} ${item.name};`;
+            if (item.isPointer) {
+              if (item.fixedVarName !== 'RspInfo') {
+                argsText += `&task->data.${item.fixedVarName}`;
+                text += `  t->data.${item.fixedVarName} = *${item.originVarName};`;
+                if (!structMap[item.fixedFuncLimiter]) {
+                  structMap[item.fixedFuncLimiter] = true;
+                  structText += `        ${item.fixedFuncLimiter} ${item.fixedVarName};`;
                 }
               }
               else {
-                argsText += `&task->${item.name}`;
-                text += `  t->${item.name} = *${item.originName};`;
+                argsText += `&task->${item.fixedVarName}`;
+                text += `  t->${item.fixedVarName} = *${item.originVarName};`;
               }
-              originArgsText += `${item.originType} *${item.originName}`;
+              originArgsText += `${item.fixedFuncLimiter} *${item.originVarName}`;
             }
             else {
-              argsText += `task->${item.name}`;
-              originArgsText += `${item.originType} ${item.originName}`;
-              text += `  t->${item.name} = ${item.name};`
+              argsText += `task->${item.fixedVarName}`;
+              originArgsText += `${item.fixedFuncLimiter} ${item.originVarName}`;
+              text += `  t->${item.fixedVarName} = ${item.fixedVarName};`
             }
           });
           
@@ -196,54 +192,26 @@ async function readMdApi() {
       }
     }
 
-    if (firstWord === 'class' && words[1] === 'MD_API_EXPORT' && words[2] === 'CThostFtdcMdApi') {
+    if (startWith(line, 'class MD_API_EXPORT CThostFtdcMdApi')) {
       reqMethodsMap = {};
       continue;
     }
 
     if (reqMethodsMap) {
-      if ((firstWord === 'virtual' || firstWord === 'static') && words[1] && words[2]) {
-        let rtnObj = {}, argsObj, funcName;
-        if (firstWord === 'static') {
-          rtnObj.isStatic = true;
-        }
-        if (words[1] === 'const') {
-          rtnObj.isConst = true;
-
-          if (words[2] === 'char') {
-            rtnObj.type = 'object';
-            rtnObj.originType = `${words[2]}*`;
-          }
-
-          funcName = words[3];
-          argsObj = getArgs(words.slice(4));
-        }
-        else if (/^CThostFtdc/.test(words[1])) {
-          rtnObj.type = 'object';
-          rtnObj.originType = `${words[1]}*`;
-          funcName = words[2];
-          argsObj = getArgs(words.slice(3));
-        }
-        else {
-          rtnObj.type = words[1];
-          funcName = words[2];
-          argsObj = getArgs(words.slice(3));
-        }
-        reqMethodsMap[funcName] = {
-          args: argsObj,
-          rtnObj
-        };
+      if (isFuncDefine(line)) {
+        let { rtn, args } = splitWords(line);
+        reqMethodsMap[rtn.funcName] = { rtn, args };
         continue;
       }
     }
   }
   for (let funcName in reqMethodsMap) {
-    let { args, rtnObj } = reqMethodsMap[funcName];
+    let { args, rtn } = reqMethodsMap[funcName];
     let codeBody = '';
     console.log('==========================================');
     console.log(funcName);
     console.log('args:\n', args);
-    console.log('rtnObj:\n', rtnObj);
+    console.log('rtn:\n', rtn);
     
     // TODO: 主动请求函数的处理
     resultsMap.wrapMd_reqMethodsInterface_def.push(`        static void ${funcName}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
@@ -259,6 +227,21 @@ async function readMdApi() {
   return resultsMap;
 }
 
+function startWith(line, s) {
+  return line.indexOf(s) !== -1;
+}
+
+function isStructDefine(line) {
+  return /^\s*struct\s+/.test(line);
+}
+
+function isClassDefine(line) {
+  return /^\s*class\s+/.test(line);
+}
+
+function isFuncDefine(line) {
+  return /^s*[a-zA-Z][a-zA-Z0-9]*\s+([a-zA-Z][a-zA-Z0-9]*\s*)+\([^.]*\)/.test(line);
+}
 
 function trim(value) {
   return value.replace(/^\s*/, '').replace(/\s*$/, '');
@@ -276,57 +259,6 @@ function removeBlanks(list) {
   }
 }
 
-
-function getArgs(words) {
-  let args = [], argObj = {};
-  console.log(words)
-  while(words.length) {
-    let s = words.shift();
-    if (/^\s|true|false$/) {
-      continue;
-    }
-    if (s === ';') {
-      break;
-    }
-    if (s === 'const') {
-      argObj.isConst = true;
-      continue;
-    }
-    if (argObj.isConst) {
-      if (s === 'char' || /^CThostFtdc/.test(s)) {
-        argObj.type = 'object';
-        argObj.originType = s;
-      }
-      else {
-        argObj.type = s;
-        argObj.originType = s;
-        argObj.name = s.replace(/^p/, '').replace(/\[|\]/g, '');
-        argObj.originName = s;
-        args.push(argObj);
-        argObj = {};
-      }
-    }
-    else {
-      if (!argObj.type) {
-        if (s === 'char' || /^CThostFtdc/.test(s)) {
-          argObj.type = 'object';
-          argObj.originType = s;
-        }
-        else {
-          argObj.type = s;
-          argObj.originType = s;
-        }
-      }
-      else {
-        argObj.name = s.replace(/^p/, '');
-        argObj.originName = s;
-        args.push(argObj);
-        argObj = {};
-      }
-    }
-  }
-  return args;
-}
 
 // function splitWords(line) {
 //   return line.split(/\s+|[(){}*,=]/);
@@ -360,8 +292,6 @@ function splitWords(line) {
   let rtn = parseRtnStatement(beforeArgWords);
   let args = parseArgsStatement(argWordsList);
 
-  console.log(rtn);
-  console.log(args);
   return { rtn, args };
 }
 
@@ -467,6 +397,7 @@ function parseRtnStatement(words) {
 
   result.funcName = funcName;
   result.funcLimiter = funcLimiter;
+  result.fixedFuncLimiter = fixFuncLimiter(funcLimiter);
 
   return result;
 }
@@ -497,6 +428,9 @@ function parseArgsStatement(wordsList) {
     });
 
     result.varName = varName;
+    let { fixedVarName, originVarName } = fixVarName(varName);
+    result.fixedVarName = fixedVarName;
+    result.originVarName = originVarName;
     result.varLimiter = varLimiter;
 
     if (value) {
@@ -511,9 +445,31 @@ function parseArgsStatement(wordsList) {
   return args;
 }
 
+function fixFuncLimiter(funcLimiter) {
+  return funcLimiter.replace(/^virtual\s+/, '');
+}
+
+function fixVarName(varName) {
+  let characters = varName.split('');
+  let originVarName = varName, fixedVarName = varName;
+  
+  if (characters[characters.length - 1] === ']' && characters[characters.length - 2] === '[') {
+    characters.splice(characters.length - 2, 2);
+
+    originVarName = characters.join('');
+
+    if (characters[0] === 'p' && characters[1] === 'p' && characters[2].toUpperCase() === characters[2]) {
+      characters.splice(0, 1);
+      fixedVarName = characters.join('');
+    }
+  }
+  
+  return { fixedVarName, originVarName };
+}
+
 // (async () => {
 //   await create();
 // })();
-// create();
-let s = 'virtual int SubscribeMarketData(char *ppInstrumentID[], int nCount) = 0;';
-splitWords(s);
+create();
+// let s = 'virtual test()';
+// splitWords(s);  set_obj(obj, "GuarantRatio", &p->GuarantRatio);
