@@ -199,7 +199,6 @@ async function readMdApi() {
     }
 
     if (reqMethodsMap) {
-      console.log(line)
       if (isFuncDefine(line)) {
         let { rtn, args } = splitWords(line);
         reqMethodsMap[rtn.funcName] = { rtn, args };
@@ -211,10 +210,10 @@ async function readMdApi() {
     // console.log(funcName)
     let { args, rtn } = reqMethodsMap[funcName];
     let codeBody = '';
-    // console.log('==========================================');
-    // console.log(funcName);
-    // console.log('args:\n', args);
-    // console.log('rtn:\n', rtn);
+    console.log('==========================================');
+    console.log(funcName);
+    console.log('args:\n', args);
+    console.log('rtn:\n', rtn);
     
     // TODO: 主动请求函数的处理
     resultsMap.wrapMd_reqMethodsInterface_def.push(`        static void ${funcName}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
@@ -288,8 +287,6 @@ function splitWords(line) {
       beforeArgCharacters.push(c);
     }
   }
-
-  console.log(beforeArgCharacters.join(''))
 
   let { words: beforeArgWords } = composeWord(beforeArgCharacters);
   let { wordsList: argWordsList } = composeWord(argCharacters);
