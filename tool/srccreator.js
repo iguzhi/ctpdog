@@ -157,20 +157,21 @@ async function readMdApi() {
               if (item.fixedVarName !== 'RspInfo') {
                 argsText += `&task->data.${item.fixedVarName}`;
                 text += `  t->data.${item.fixedVarName} = *${item.originVarName};`;
-                if (!structMap[item.fixedFuncLimiter]) {
-                  structMap[item.fixedFuncLimiter] = true;
-                  structText += `        ${item.fixedFuncLimiter} ${item.fixedVarName};`;
+                let fixedVarLimiter = item.varLimiter.replace(/\*$/, '');
+                if (!structMap[fixedVarLimiter]) {
+                  structMap[fixedVarLimiter] = true;
+                  structText += `        ${fixedVarLimiter} ${item.fixedVarName};`;
                 }
               }
               else {
                 argsText += `&task->${item.fixedVarName}`;
                 text += `  t->${item.fixedVarName} = *${item.originVarName};`;
               }
-              originArgsText += `${item.fixedFuncLimiter} *${item.originVarName}`;
+              originArgsText += `${item.varLimiter} ${item.originVarName}`;
             }
             else {
               argsText += `task->${item.fixedVarName}`;
-              originArgsText += `${item.fixedFuncLimiter} ${item.originVarName}`;
+              originArgsText += `${item.varLimiter} ${item.originVarName}`;
               text += `  t->${item.fixedVarName} = ${item.fixedVarName};`
             }
           });
@@ -198,6 +199,7 @@ async function readMdApi() {
     }
 
     if (reqMethodsMap) {
+      console.log(line)
       if (isFuncDefine(line)) {
         let { rtn, args } = splitWords(line);
         reqMethodsMap[rtn.funcName] = { rtn, args };
@@ -206,12 +208,13 @@ async function readMdApi() {
     }
   }
   for (let funcName in reqMethodsMap) {
+    // console.log(funcName)
     let { args, rtn } = reqMethodsMap[funcName];
     let codeBody = '';
-    console.log('==========================================');
-    console.log(funcName);
-    console.log('args:\n', args);
-    console.log('rtn:\n', rtn);
+    // console.log('==========================================');
+    // console.log(funcName);
+    // console.log('args:\n', args);
+    // console.log('rtn:\n', rtn);
     
     // TODO: 主动请求函数的处理
     resultsMap.wrapMd_reqMethodsInterface_def.push(`        static void ${funcName}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
@@ -240,7 +243,7 @@ function isClassDefine(line) {
 }
 
 function isFuncDefine(line) {
-  return /^s*[a-zA-Z][a-zA-Z0-9]*\s+([a-zA-Z][a-zA-Z0-9]*\s*)+\([^.]*\)/.test(line);
+  return /^\s*[a-zA-Z][a-zA-Z0-9]*\*?\s+\*?([a-zA-Z][a-zA-Z0-9*]*\*?\s*\*?)+\([^.]*\)/.test(line);
 }
 
 function trim(value) {
@@ -264,6 +267,7 @@ function removeBlanks(list) {
 //   return line.split(/\s+|[(){}*,=]/);
 // }
 function splitWords(line) {
+  line = trim(line);
   let characters = line.split('');
 
   let beforeArgCharacters = [], argCharacters;
@@ -285,6 +289,7 @@ function splitWords(line) {
     }
   }
 
+  console.log(beforeArgCharacters.join(''))
 
   let { words: beforeArgWords } = composeWord(beforeArgCharacters);
   let { wordsList: argWordsList } = composeWord(argCharacters);
@@ -460,9 +465,15 @@ function fixVarName(varName) {
 
     if (characters[0] === 'p' && characters[1] === 'p' && characters[2].toUpperCase() === characters[2]) {
       characters.splice(0, 1);
-      fixedVarName = characters.join('');
+      // fixedVarName = characters.join('');
     }
   }
+
+  if (characters[0] === 'p' && characters[1].toUpperCase() === characters[1]) {
+    characters.splice(0, 1);
+  }
+
+  fixedVarName = characters.join('');
   
   return { fixedVarName, originVarName };
 }
@@ -473,3 +484,6 @@ function fixVarName(varName) {
 create();
 // let s = 'virtual test()';
 // splitWords(s);  set_obj(obj, "GuarantRatio", &p->GuarantRatio);
+// let s = 'static CThostFtdcMdApi *CreateFtdcMdApi(const char *pszFlowPath = "", const bool bIsUsingUdp=false, const bool bIsMulticast=false);'
+
+// console.log(isFuncDefine(s))
