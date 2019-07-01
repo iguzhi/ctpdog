@@ -20,7 +20,7 @@ async function create() {
     mdSpi_struct: resultsMap.mdSpi_struct.join('\n'),
     wrapMd_setJsMethods: resultsMap.wrapMd_setJsMethods.join('\n'),
     wrapMd_addRspEvent: resultsMap.wrapMd_addRspEvent.join('\n'),
-    wrapMd_reqMethodsImpl_def: '#22',
+    wrapMd_reqMethodsImpl_def: resultsMap.wrapMd_reqMethodsImpl_def.join('\n'),
     wrapMd_mainRspMethodsImpl_def: '#22',
     wrapMd_reqMethodsInterface_def: resultsMap.wrapMd_reqMethodsInterface_def.join('\n'),
     wrapMd_rspMethodsInterface_def: resultsMap.wrapMd_rspMethodsInterface_def.join('\n'),
@@ -214,6 +214,29 @@ async function readMdApi() {
     console.log(funcName);
     console.log('args:\n', args);
     console.log('rtn:\n', rtn);
+
+    if (args.length === 0) {
+      if (rtn.type === 'void') {
+        codeBody += `    obj->GetMdApi()->${funcName}();\n`;
+        codeBody += `    args.GetReturnValue().Set(Undefined(isolate));`;
+      }
+      else {
+        codeBody += `    ${rtn.type === 'char*' ? 'const ' : ''}${rtn.type} v = obj->GetMdApi()->${funcName}();\n`;
+        codeBody += '    args.GetReturnValue().Set(';
+        switch(rtn.type) {
+          case 'char*':
+            codeBody += 'String::NewFromUtf8(isolate, v)';
+            break;
+          case 'int':
+            codeBody += 'Int32::New(isolate, v)';
+            break;
+          case 'bool':
+            codeBody += 'Boolean::New(isolate, v)';
+            break;
+        }
+        codeBody += ');';
+      }
+    }
     
     // TODO: 主动请求函数的处理
     resultsMap.wrapMd_reqMethodsInterface_def.push(`        static void ${funcName}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
