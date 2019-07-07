@@ -187,8 +187,12 @@ void WrapMd::CreateFtdcMdApi(const v8::FunctionCallbackInfo<v8::Value>& args)
     Local<String> flowpath = args[0]->ToString();
     String::Utf8Value p(flowpath);
 
+    Local<Boolean> isUsingUdp = args[1]->ToBoolean();
 
-    CThostFtdcMdApi* m_pApi = CThostFtdcMdApi::CreateFtdcMdApi((char*)*p);
+    Local<Boolean> isMulticast = args[2]->ToBoolean();
+
+
+    CThostFtdcMdApi* m_pApi = CThostFtdcMdApi::CreateFtdcMdApi((char*)*p, isUsingUdp->BooleanValue(), isMulticast->BooleanValue());
     
     obj->setMdApi(m_pApi);
     obj->RegisterSpi();

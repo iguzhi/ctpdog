@@ -237,6 +237,30 @@ async function readMdApi() {
         codeBody += ');';
       }
     }
+    else {
+      codeBody += '    if (';
+      let argStr = '';
+      args.forEach(function(arg, i) {
+        if (argStr) {
+          argStr += ' || ';
+        }
+        argStr += `args[${i}]->IsUndefined()`;
+        if (arg.isPointer) {
+          if (/^CThostFtdc/.test(arg.type)) {
+            argStr += ` || !args[${i}]->IsObject()`; // || args[1]->IsUndefined()
+          }
+          else if (/\[\]$/.test(arg.varName)) {
+            argStr += ` || !args[${i}]->IsArray()`;
+          }
+        }
+      });
+      codeBody += argStr;
+      codeBody += ')\n';
+      codeBody += '    {\n';
+      codeBody += '        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments")));\n';
+      codeBody += '        return;\n';
+      codeBody += '    }\n';
+    }
     
     // TODO: 主动请求函数的处理
     resultsMap.wrapMd_reqMethodsInterface_def.push(`        static void ${funcName}(const v8::FunctionCallbackInfo<v8::Value>& args);`);
