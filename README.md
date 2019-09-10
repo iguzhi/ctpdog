@@ -4,8 +4,10 @@
 
 # compile
 windows平台需要安装编译工具：`npm install --global --production windows-build-tools`
+
+执行脚本：
 ```
-node-gyp rebuild
+npm run rebuild 或 yarn rebuild
 
 ```
 
