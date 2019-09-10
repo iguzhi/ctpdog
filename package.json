@@ -17,7 +17,7 @@
   "scripts": {
     "build": "node-gyp build",
     "rebuild": "node-gyp rebuild",
-    "clear": "node-gyp clear",
+    "clean": "node-gyp clean",
     "cfg": "node-gyp configure"
   },
   "repository": {
