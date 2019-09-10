@@ -55,6 +55,7 @@ class WrapMd : public CThostFtdcMdSpiI, public node::ObjectWrap
         static void UnSubscribeMarketData(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void SubscribeForQuoteRsp(const v8::FunctionCallbackInfo<v8::Value>& args);
         static void UnSubscribeForQuoteRsp(const v8::FunctionCallbackInfo<v8::Value>& args);
+        static void ReqQryMulticastInstrument(const v8::FunctionCallbackInfo<v8::Value>& args);
         
         //回调js部分
         virtual void MainOnFrontConnected();
@@ -62,6 +63,7 @@ class WrapMd : public CThostFtdcMdSpiI, public node::ObjectWrap
         virtual void MainOnHeartBeatWarning(int nTimeLapse);
         virtual void MainOnRspUserLogin(CThostFtdcRspUserLoginField *pRspUserLogin, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
         virtual void MainOnRspUserLogout(CThostFtdcUserLogoutField *pUserLogout, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
+        virtual void MainOnRspQryMulticastInstrument(CThostFtdcMulticastInstrumentField *pMulticastInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
         virtual void MainOnRspError(CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
         virtual void MainOnRspSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;
         virtual void MainOnRspUnSubMarketData(CThostFtdcSpecificInstrumentField *pSpecificInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) ;

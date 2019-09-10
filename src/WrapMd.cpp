@@ -69,6 +69,7 @@ void WrapMd::Init(Isolate* isolate)
     NODE_SET_PROTOTYPE_METHOD(tpl, "UnSubscribeMarketData", UnSubscribeMarketData);
     NODE_SET_PROTOTYPE_METHOD(tpl, "SubscribeForQuoteRsp", SubscribeForQuoteRsp);
     NODE_SET_PROTOTYPE_METHOD(tpl, "UnSubscribeForQuoteRsp", UnSubscribeForQuoteRsp);
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqQryMulticastInstrument", ReqQryMulticastInstrument);
     NODE_SET_PROTOTYPE_METHOD(tpl, "On", On);
     constructor.Reset(isolate, tpl->GetFunction());
 
@@ -78,6 +79,7 @@ void WrapMd::Init(Isolate* isolate)
     m_event.insert("OnHeartBeatWarning");
     m_event.insert("OnRspUserLogin");
     m_event.insert("OnRspUserLogout");
+    m_event.insert("OnRspQryMulticastInstrument");
     m_event.insert("OnRspError");
     m_event.insert("OnRspSubMarketData");
     m_event.insert("OnRspUnSubMarketData");
@@ -282,6 +284,14 @@ void WrapMd::ReqUserLogout(const FunctionCallbackInfo<Value>& args)
     CThostFtdcUserLogoutField req;
     REQ_WITH_REQID(req);
     int r = obj->GetMdApi()->ReqUserLogout(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
+void WrapMd::ReqQryMulticastInstrument(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcQryMulticastInstrumentField req;
+    REQ_WITH_REQID(req);
+    int r = obj->GetMdApi()->ReqQryMulticastInstrument(&req, reqid);
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
