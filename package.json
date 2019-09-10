@@ -15,7 +15,10 @@
     "nodemailer": "^4.6.8"
   },
   "scripts": {
-    "rebuild": "node-gyp rebuild"
+    "build": "node-gyp build",
+    "rebuild": "node-gyp rebuild",
+    "clear": "node-gyp clear",
+    "cfg": "node-gyp configure"
   },
   "repository": {
     "type": "git",
