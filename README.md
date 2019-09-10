@@ -9,14 +9,12 @@ windows平台需要安装编译工具：`npm install --global --production windo
 执行脚本：
 ```
 npm run rebuild 或 yarn rebuild
-
 ```
 
 # execute
 run example
 ```
 node ./example/ctpapp.js
-
 ```
 
 # Example
