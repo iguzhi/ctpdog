@@ -1,7 +1,7 @@
 # warning
 目前仅支持linux64和win64平台(win32平台未测试，理论上应该也支持)
 
-支持的node版本: 8.x.x, 如(8.16.1), 8以上的版本不被支持
+支持的nodejs版本: 8.x.x, 如: 8.16.1  ***(8以上版本不被支持)***
 
 # compile
 windows平台需要安装编译工具：`npm install --global --production windows-build-tools`
