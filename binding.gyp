@@ -5,7 +5,7 @@
       "sources": [ "src/shifctp.cpp",  "src/ThostFtdcMdSpiI.cpp", "src/WrapMd.cpp",  "src/ThostFtdcTraderSpiI.cpp", "src/WrapTd.cpp"],
       "conditions": [
         ["OS=='linux'", {
-          "libraries":["$(CURDIR)/../api/tradeapi_linux64/libthostmduserapi_se.so", "$(CURDIR)/../api/tradeapi_linux64/libthosttraderapi_se.so"],
+          "libraries":["$(CURDIR)/../api/tradeapi_linux64/thostmduserapi_se.so", "$(CURDIR)/../api/tradeapi_linux64/thosttraderapi_se.so"],
           "include_dirs":["api/tradeapi_linux64"]
         }],
         ["OS=='win'", {
