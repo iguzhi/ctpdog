@@ -4,10 +4,10 @@ module.exports = {
 		market: 'INFO',
 		trade: 'INFO',
 		ctp: 'INFO',
-		app: 'INFO',
-		email: 'INFO',
-		sql: 'INFO',
-		websocket: 'INFO',
-		schedule: 'INFO'
+		// app: 'INFO',
+		// email: 'INFO',
+		// sql: 'INFO',
+		// websocket: 'INFO',
+		// schedule: 'INFO'
 	}
 };

@@ -18,7 +18,8 @@
     "build": "node-gyp build",
     "rebuild": "node-gyp rebuild",
     "clean": "node-gyp clean",
-    "cfg": "node-gyp configure"
+    "cfg": "node-gyp configure",
+    "autodict": "node ./scripts/autodict"
   },
   "repository": {
     "type": "git",

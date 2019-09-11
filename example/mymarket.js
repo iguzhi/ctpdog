@@ -1,5 +1,5 @@
 const logger = require('../index').logger.getLogger('market');
-const { ee, Market } = require('../index');
+const { Market } = require('../index');
 
 class MyMarket extends Market {
 
@@ -24,7 +24,6 @@ class MyMarket extends Market {
 
   OnRtnDepthMarketData(data) {
     super.OnRtnDepthMarketData(...arguments);
-    ee.emit('OnRtnDepthMarketData', data);
   }
 
 }

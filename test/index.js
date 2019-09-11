@@ -1,2 +1,1 @@
-// require('./testctp');
-require('./testmailer');
+require('./testctp');

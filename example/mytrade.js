@@ -1,5 +1,5 @@
 const logger = require('../index').logger.getLogger('trade');
-const { ee, Trade } = require('../index');
+const { Trade } = require('../index');
 
 class MyTrade extends Trade {
 

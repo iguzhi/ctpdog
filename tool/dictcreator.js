@@ -93,5 +93,3 @@ function trim(value) {
 }
 
 exports.create = create;
-
-create()
