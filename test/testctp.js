@@ -10,7 +10,7 @@ let ctp = new CTP(
     },
     {
         InvestorID: '369868',
-        Password: '123456'
+        Password: 'iguzhi'
     }
 );
 
@@ -30,7 +30,7 @@ ctp.md.On('OnFrontConnected', function() {
     let { md, investor } = ctp;
     console.log('ReqUserLogin : %s', md.ReqUserLogin(investor, ctp.nRequestID()));
     console.log('OnFrontConnected');
-    console.log(ctp.md.SubscribeMarketData(['rb2001'], 1));
+    console.log(ctp.md.SubscribeMarketData(['au1912'], 1));
 });
 
 ctp.md.On('OnRtnDepthMarketData', function(data) {

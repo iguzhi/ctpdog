@@ -1,19 +1,20 @@
-const CtpClass = require('../index').Ctp;
+const CTP = require('../lib/ctp');
 const Market = require('./mymarket');
 const Trade = require('./mytrade');
 
-let ctp = new CtpClass(
+
+
+let ctp = new CTP(
     {
         frontend: {
            	BrokerID: '4040',// 银河期货
-           	MdURL: 'tcp://180.166.103.21:51213',
-           	TdURL: 'tcp://180.166.103.21:51205'
+           	MdURL: 'tcp://180.166.103.21:55213',
+           	TdURL: 'tcp://180.166.103.21:55205'
         }
     },
     {
-        InvestorID: '0060000123',
-        Password: '123456',
-        FundPassword: '123456'
+        InvestorID: '369868',
+        Password: 'iguzhi'
     }
 );
 

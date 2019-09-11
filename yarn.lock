@@ -390,10 +390,10 @@ log4js@^3.0.5:
     rfdc "^1.1.2"
     streamroller "0.7.0"
 
-microenum@0.0.1:
-  version "0.0.1"
-  resolved "https://registry.npm.taobao.org/microenum/download/microenum-0.0.1.tgz#6204e7ee6806c6031ceb322d8c3200bd135f776c"
-  integrity sha1-YgTn7mgGxgMc6zItjDIAvRNfd2w=
+microenum@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/microenum/-/microenum-0.0.2.tgz#d5d0f0db02fdaf3d88b6a2f70a2ae8ce6bfe5b8f"
+  integrity sha512-lNEWQUA8Xoc512EqvUrJfqKB2Hcglhb8GrbZOQssJvz5IUB3HpPE4Ey8Ap455oGMIim9a7nWTVvzOFqnvj57Dg==
 
 mime-db@1.40.0:
   version "1.40.0"
@@ -448,11 +448,6 @@ node-gyp@^3.8.0:
     semver "~5.3.0"
     tar "^2.0.0"
     which "1"
-
-nodemailer@^4.6.8:
-  version "4.7.0"
-  resolved "https://registry.npm.taobao.org/nodemailer/download/nodemailer-4.7.0.tgz#4420e06abfffd77d0618f184ea49047db84f4ad8"
-  integrity sha1-RCDgar//130GGPGE6kkEfbhPStg=
 
 "nopt@2 || 3":
   version "3.0.6"

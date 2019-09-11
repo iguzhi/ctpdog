@@ -11,7 +11,7 @@ class MyMarket extends Market {
   
   OnRspUserLogin(data, rsp, nRequestID, bIsLast) {
     super.OnRspUserLogin(...arguments);
-    console.log("SubscribeMarketData:", this.ctp.md.SubscribeMarketData(['sc1809']));
+    console.log("SubscribeMarketData:", this.ctp.md.SubscribeMarketData(['sc1911']));
   }
 
   OnRspSubMarketData(data, rsp, nRequestID, bIsLast) {
