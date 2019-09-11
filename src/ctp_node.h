@@ -8842,6 +8842,22 @@ static void set_struct(Local<Object>& obj, CThostFtdcReserveOpenAccountField *p)
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
 
+static void set_struct(Local<Object>& obj, CThostFtdcMulticastInstrumentField *p)
+{
+    set_struct(obj, "TopicID", &p->TopicID, sizeof(p->TopicID));
+    set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
+    set_struct(obj, "InstrumentNo", &p->InstrumentNo, sizeof(p->InstrumentNo));
+    set_struct(obj, "CodePrice", &p->CodePrice, sizeof(p->CodePrice));
+    set_struct(obj, "VolumeMultiple", &p->VolumeMultiple, sizeof(p->VolumeMultiple));
+    set_struct(obj, "PriceTick", &p->PriceTick, sizeof(p->PriceTick));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcQryMulticastInstrumentField *p)
+{
+    set_struct(obj, "TopicID", &p->TopicID, sizeof(p->TopicID));
+    set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
+}
+
 };
 #endif
 

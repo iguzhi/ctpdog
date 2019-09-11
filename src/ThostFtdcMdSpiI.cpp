@@ -52,7 +52,7 @@ void CThostFtdcMdSpiI::on_async_cb(uv_async_t* handle)
     //printf("on_async_cb api=%s\n", task->api.c_str());
     do{
     if(task->api == "OnRtnDepthMarketData") { task->pmd->MainOnRtnDepthMarketData(&task->data.DepthMarketData); continue;}
-    else if(task->api == "OnRspQryMulticastInstrument") { task->pmd->MainOnRspQryMulticastInstrument(&task->data.MulticastInstrument, &task->data.RspInfo, task->nRequestID, task->bIsLast); continue;}
+    else if(task->api == "OnRspQryMulticastInstrument") { task->pmd->MainOnRspQryMulticastInstrument(&task->data.MulticastInstrument, &task->RspInfo, task->nRequestID, task->bIsLast); continue;}
     else if(task->api == "OnRtnForQuoteRsp") { task->pmd->MainOnRtnForQuoteRsp(&task->data.ForQuoteRsp); continue;}
     else if(task->api == "OnFrontConnected") { task->pmd->MainOnFrontConnected(); continue;}
     else if(task->api == "OnFrontDisconnected") { task->pmd->MainOnFrontDisconnected(task->data.nReason); continue;}

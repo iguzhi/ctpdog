@@ -731,6 +731,39 @@ void WrapMd::MainOnRtnForQuoteRsp(CThostFtdcForQuoteRspField *pForQuoteRsp)
     cb->Call(Null(isolate), 1, argv);  
 }
 
+void WrapMd::MainOnRspQryMulticastInstrument(CThostFtdcMulticastInstrumentField *pMulticastInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+{
+    Isolate* isolate = Isolate::GetCurrent();
+    HandleScope scope(isolate);
+
+    __callback_iter_type it = callback_map.find("OnRspQryMulticastInstrument");
+    if(it == callback_map.end()) return;
+
+    Local<Value> argv[4];
+    if(pMulticastInstrument != NULL)
+    {
+        Local<Object> jsonRtn = Object::New(isolate);
+        jsonRtn->Set(String::NewFromUtf8(isolate, "TopicID"), Int32::New(isolate, pMulticastInstrument->TopicID));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "InstrumentID"), String::NewFromUtf8(isolate, pMulticastInstrument->InstrumentID));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "InstrumentNo"), Int32::New(isolate, pMulticastInstrument->InstrumentNo));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "CodePrice"), Number::New(isolate, pMulticastInstrument->CodePrice));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "VolumeMultiple"), Int32::New(isolate, pMulticastInstrument->VolumeMultiple));
+        jsonRtn->Set(String::NewFromUtf8(isolate, "PriceTick"), Number::New(isolate, pMulticastInstrument->PriceTick));
+        argv[0] = jsonRtn;
+    }
+    else
+    {
+        argv[0] = Local<Value>::New(isolate, Undefined(isolate));
+    }
+    argv[1] = PkgRspInfo(pRspInfo); 
+    argv[2] = Local<Value>::New(isolate, Int32::New(isolate, nRequestID));
+
+    argv[3] = Boolean::New(isolate, bIsLast)->ToBoolean();
+
+    Local<Function> cb = Local<Function>::New(isolate, it->second);
+    cb->Call(Null(isolate), 4, argv);
+}
+
 }
 
 

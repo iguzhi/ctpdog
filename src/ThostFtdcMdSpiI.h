@@ -61,6 +61,7 @@ struct taskdata
         CThostFtdcSpecificInstrumentField SpecificInstrument;
         CThostFtdcDepthMarketDataField DepthMarketData;
         CThostFtdcForQuoteRspField ForQuoteRsp;
+        CThostFtdcMulticastInstrumentField MulticastInstrument;
     }data;
     int nRequestID;
     bool bIsLast;
