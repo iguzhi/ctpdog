@@ -25,6 +25,8 @@ node ./example/ctpapp.js
 
 
 ### 新增接口
+
+#### TD
 查询用户当前支持的认证模式的回复
 ```
 virtual void OnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
@@ -43,6 +45,16 @@ virtual void OnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CT
 请求查询二级代理商信息响应
 ```
 virtual void OnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
+```
+
+请求查询资金账户响应
+```
+virtual void OnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
+```
+
+请求查询二级代理商资金校验模式响应
+```
+virtual void OnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
 ```
 
 注册用户终端信息，用于中继服务器多连接模式
@@ -87,14 +99,31 @@ virtual int ReqUserLoginWithText(CThostFtdcReqUserLoginWithTextField *pReqUserLo
 virtual int ReqUserLoginWithOTP(CThostFtdcReqUserLoginWithOTPField *pReqUserLoginWithOTP, int nRequestID) = 0;
 ```
 
+请求查询资金账户
+```
+virtual int ReqQrySecAgentTradingAccount(CThostFtdcQryTradingAccountField *pQryTradingAccount, int nRequestID) = 0;
+```
+
+请求查询二级代理商资金校验模式
+```
+virtual int ReqQrySecAgentCheckMode(CThostFtdcQrySecAgentCheckModeField *pQrySecAgentCheckMode, int nRequestID) = 0;
+```
+
 请求查询二级代理商信息
 ```
 virtual int ReqQrySecAgentTradeInfo(CThostFtdcQrySecAgentTradeInfoField *pQrySecAgentTradeInfo, int nRequestID) = 0;
 ```
 
+#### MD
+
 请求查询组播合约
 ```
 virtual int ReqQryMulticastInstrument(CThostFtdcQryMulticastInstrumentField *pQryMulticastInstrument, int nRequestID) = 0;
+```
+
+请求查询组播合约响应
+```
+virtual void OnRspQryMulticastInstrument(CThostFtdcMulticastInstrumentField *pMulticastInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
 ```
 
 ### 删除接口

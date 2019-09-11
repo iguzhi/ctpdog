@@ -142,6 +142,7 @@ struct taskdata
        CThostFtdcRspGenUserCaptchaField RspGenUserCaptcha;
        CThostFtdcRspGenUserTextField RspGenUserText;
        CThostFtdcSecAgentTradeInfoField SecAgentTradeInfo;
+       CThostFtdcSecAgentCheckModeField SecAgentCheckMode;
     }data;
     int nRequestID;
     bool bIsLast;
@@ -309,7 +310,8 @@ class CThostFtdcTraderSpiI : public CThostFtdcTraderSpi
 		virtual void MainOnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
         virtual void MainOnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
         virtual void MainOnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
-
+        virtual void MainOnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
         ///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 		virtual void OnFrontConnected();
 		
@@ -659,6 +661,12 @@ class CThostFtdcTraderSpiI : public CThostFtdcTraderSpi
 
         ///请求查询二级代理商信息响应
         virtual void OnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+        ///请求查询资金账户响应
+        virtual void OnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+        ///请求查询二级代理商资金校验模式响应
+        virtual void OnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
     private:
  

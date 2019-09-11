@@ -167,6 +167,8 @@ void CThostFtdcTraderSpiI::on_async_cb(uv_async_t* handle)
         if(task->api == "OnRspGenUserCaptcha") { task->ptd->MainOnRspGenUserCaptcha(&task->data.RspGenUserCaptcha, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
         if(task->api == "OnRspGenUserText") { task->ptd->MainOnRspGenUserText(&task->data.RspGenUserText, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
         if(task->api == "OnRspQrySecAgentTradeInfo") { task->ptd->MainOnRspQrySecAgentTradeInfo(&task->data.SecAgentTradeInfo, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
+        if(task->api == "OnRspQrySecAgentTradingAccount") { task->ptd->MainOnRspQrySecAgentTradingAccount(&task->data.TradingAccount, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
+        if(task->api == "OnRspQrySecAgentCheckMode") { task->ptd->MainOnRspQrySecAgentCheckMode(&task->data.SecAgentCheckMode, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
     }while(0); 
     task->reinit();
     //uv_close((uv_handle_t*)handle, on_uv_close_cb);
@@ -853,6 +855,18 @@ void CThostFtdcTraderSpiI::OnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfo
 {
     ///请求查询二级代理商信息响应
     QUEUEPUSH(_FUNCTION_, pSecAgentTradeInfo, sizeof(CThostFtdcSecAgentTradeInfoField), pRspInfo, nRequestID, bIsLast);
+}
+
+void CThostFtdcTraderSpiI::OnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    ///请求查询资金账户响应
+    QUEUEPUSH(_FUNCTION_, pTradingAccount, sizeof(CThostFtdcTradingAccountField), pRspInfo, nRequestID, bIsLast);
+}
+
+void CThostFtdcTraderSpiI::OnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    ///请求查询二级代理商资金校验模式响应
+    QUEUEPUSH(_FUNCTION_, pSecAgentCheckMode, sizeof(CThostFtdcSecAgentCheckModeField), pRspInfo, nRequestID, bIsLast);
 }
 
 }

@@ -151,7 +151,10 @@ namespace td
             static void ReqUserLoginWithOTP(const v8::FunctionCallbackInfo<v8::Value>& args);
             // 请求查询二级代理商信息
             static void ReqQrySecAgentTradeInfo(const v8::FunctionCallbackInfo<v8::Value>& args);
-
+            // 请求查询二级代理商资金校验模式
+            static void ReqQrySecAgentCheckMode(const v8::FunctionCallbackInfo<v8::Value>& args);
+            // 请求查询资金账户
+            static void ReqQrySecAgentTradingAccount(const v8::FunctionCallbackInfo<v8::Value>& args);
             /////////////////////////////主动请求函数end/////////////////////////////////////////////////////
 
 
@@ -506,6 +509,12 @@ namespace td
 
             /// 请求查询二级代理商信息响应
             virtual void MainOnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+            
+            ///请求查询资金账户响应
+            virtual void MainOnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+            ///请求查询二级代理商资金校验模式响应
+            virtual void MainOnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
             bool CanCallback(string event)
             {

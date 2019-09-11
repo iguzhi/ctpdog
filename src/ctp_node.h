@@ -181,6 +181,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginField *p)
     set_obj(obj, "OneTimePassword", &p->OneTimePassword);
     set_obj(obj, "ClientIPAddress", &p->ClientIPAddress);
     set_obj(obj, "LoginRemark", &p->LoginRemark);
+    set_obj(obj, "ClientIPPort", &p->ClientIPPort);
 }
 static void set_obj(Local<Object>& obj, CThostFtdcRspUserLoginField *p)
 {
@@ -214,12 +215,15 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqAuthenticateField *p)
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "UserProductInfo", &p->UserProductInfo);
     set_obj(obj, "AuthCode", &p->AuthCode);
+    set_obj(obj, "AppID", &p->AppID);
 }
 static void set_obj(Local<Object>& obj, CThostFtdcRspAuthenticateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "UserProductInfo", &p->UserProductInfo);
+    set_obj(obj, "AppID", &p->AppID);
+    set_obj(obj, "AppType", &p->AppType);
 }
 static void set_obj(Local<Object>& obj, CThostFtdcAuthenticationInfoField *p)
 {
@@ -228,6 +232,8 @@ static void set_obj(Local<Object>& obj, CThostFtdcAuthenticationInfoField *p)
     set_obj(obj, "UserProductInfo", &p->UserProductInfo);
     set_obj(obj, "AuthInfo", &p->AuthInfo);
     set_obj(obj, "IsResult", &p->IsResult);
+    set_obj(obj, "AppID", &p->AppID);
+    set_obj(obj, "AppType", &p->AppType);
 }
 static void set_obj(Local<Object>& obj, CThostFtdcTransferHeaderField *p)
 {
@@ -677,6 +683,8 @@ static void set_obj(Local<Object>& obj, CThostFtdcSettlementInfoField *p)
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "SequenceNo", &p->SequenceNo);
     set_obj(obj, "Content", &p->Content);
+    set_obj(obj, "AccountID", &p->AccountID);
+    set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
 static void set_obj(Local<Object>& obj, CThostFtdcInstrumentMarginRateAdjustField *p)
 {
@@ -4634,6 +4642,21 @@ static void set_obj(Local<Object>& obj, CThostFtdcQrySecAgentTradeInfoField *p)
     set_obj(obj, "BrokerSecAgentID", &p->BrokerSecAgentID);
 }
 
+static void set_obj(Local<Object>& obj, CThostFtdcSecAgentCheckModeField *p)
+{
+    set_obj(obj, "InvestorID", &p->InvestorID);
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "CurrencyID", &p->CurrencyID);
+    set_obj(obj, "BrokerSecAgentID", &p->BrokerSecAgentID);
+    set_obj(obj, "CheckSelfAccount", &p->CheckSelfAccount);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcQrySecAgentCheckModeField *p)
+{
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "InvestorID", &p->InvestorID);
+}
+
 ////////////////////////////// set_struct /////////////////////////////////////////////
 
 static void set_struct(Local<Object>& obj, CThostFtdcDisseminationField *p)
@@ -4654,6 +4677,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginField *p)
     set_struct(obj, "OneTimePassword", &p->OneTimePassword, sizeof(p->OneTimePassword));
     set_struct(obj, "ClientIPAddress", &p->ClientIPAddress, sizeof(p->ClientIPAddress));
     set_struct(obj, "LoginRemark", &p->LoginRemark, sizeof(p->LoginRemark));
+    set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
 }
 static void set_struct(Local<Object>& obj, CThostFtdcRspUserLoginField *p)
 {
@@ -4687,12 +4711,15 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqAuthenticateField *p)
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "UserProductInfo", &p->UserProductInfo, sizeof(p->UserProductInfo));
     set_struct(obj, "AuthCode", &p->AuthCode, sizeof(p->AuthCode));
+    set_struct(obj, "AppID", &p->AppID, sizeof(p->AppID));
 }
 static void set_struct(Local<Object>& obj, CThostFtdcRspAuthenticateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "UserProductInfo", &p->UserProductInfo, sizeof(p->UserProductInfo));
+    set_struct(obj, "AppID", &p->AppID, sizeof(p->AppID));
+    set_struct(obj, "AppType", &p->AppType, sizeof(p->AppType));
 }
 static void set_struct(Local<Object>& obj, CThostFtdcAuthenticationInfoField *p)
 {
@@ -4701,6 +4728,8 @@ static void set_struct(Local<Object>& obj, CThostFtdcAuthenticationInfoField *p)
     set_struct(obj, "UserProductInfo", &p->UserProductInfo, sizeof(p->UserProductInfo));
     set_struct(obj, "AuthInfo", &p->AuthInfo, sizeof(p->AuthInfo));
     set_struct(obj, "IsResult", &p->IsResult, sizeof(p->IsResult));
+    set_struct(obj, "AppID", &p->AppID, sizeof(p->AppID));
+    set_struct(obj, "AppType", &p->AppType, sizeof(p->AppType));
 }
 static void set_struct(Local<Object>& obj, CThostFtdcTransferHeaderField *p)
 {
@@ -5150,6 +5179,8 @@ static void set_struct(Local<Object>& obj, CThostFtdcSettlementInfoField *p)
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "SequenceNo", &p->SequenceNo, sizeof(p->SequenceNo));
     set_struct(obj, "Content", &p->Content, sizeof(p->Content));
+    set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
+    set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
 static void set_struct(Local<Object>& obj, CThostFtdcInstrumentMarginRateAdjustField *p)
 {
@@ -9105,6 +9136,21 @@ static void set_struct(Local<Object>& obj, CThostFtdcSecAgentTradeInfoField *p)
     set_struct(obj, "BrokerSecAgentID", &p->BrokerSecAgentID, sizeof(p->BrokerSecAgentID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "LongCustomerName", &p->LongCustomerName, sizeof(p->LongCustomerName));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcSecAgentCheckModeField *p)
+{
+    set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
+    set_struct(obj, "BrokerSecAgentID", &p->BrokerSecAgentID, sizeof(p->BrokerSecAgentID));
+    set_struct(obj, "CheckSelfAccount", &p->CheckSelfAccount, sizeof(p->CheckSelfAccount));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcQrySecAgentCheckModeField *p)
+{
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
 
 };

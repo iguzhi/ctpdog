@@ -141,6 +141,8 @@ void WrapTd::Init(v8::Isolate* isolate)
     NODE_SET_PROTOTYPE_METHOD(tpl, "ReqUserLoginWithText"            , ReqUserLoginWithText               );
     NODE_SET_PROTOTYPE_METHOD(tpl, "ReqUserLoginWithOTP"             , ReqUserLoginWithOTP                );
     NODE_SET_PROTOTYPE_METHOD(tpl, "ReqQrySecAgentTradeInfo"         , ReqQrySecAgentTradeInfo            );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqQrySecAgentTradingAccount"    , ReqQrySecAgentTradingAccount       );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqQrySecAgentCheckMode"         , ReqQrySecAgentCheckMode            );
     NODE_SET_PROTOTYPE_METHOD(tpl, "On", On);
     constructor.Reset(isolate, tpl->GetFunction());
 
@@ -261,6 +263,8 @@ void WrapTd::Init(v8::Isolate* isolate)
     m_event.insert("OnRspGenUserCaptcha")                       ;
     m_event.insert("OnRspGenUserText")                          ;
     m_event.insert("OnRspQrySecAgentTradeInfo")                 ;
+    m_event.insert("OnRspQrySecAgentTradingAccount")            ;
+    m_event.insert("OnRspQrySecAgentCheckMode")                 ;
 }
 
 void WrapTd::New(const FunctionCallbackInfo<Value>& args)
@@ -1111,6 +1115,22 @@ void WrapTd::ReqQrySecAgentTradeInfo(const FunctionCallbackInfo<Value>& args)
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
+void WrapTd::ReqQrySecAgentTradingAccount(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcQryTradingAccountField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqQrySecAgentTradingAccount(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
+void WrapTd::ReqQrySecAgentCheckMode(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcQrySecAgentCheckModeField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqQrySecAgentCheckMode(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
 ////////////////////////////////ctp on 回调////////////////////////////////////////////////
 #define CONTEXT() \
 Isolate* isolate = Isolate::GetCurrent();\
@@ -1881,16 +1901,28 @@ void WrapTd::MainOnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUs
     CONTEXT_WITH_4(pRspGenUserCaptcha);
 }
 
-void WrapTd:: MainOnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapTd::MainOnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
 {
     ///获取短信验证码请求的回复
     CONTEXT_WITH_4(pRspGenUserText);
 }
 
-void WrapTd:: MainOnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+void WrapTd::MainOnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
 {
     ///请求查询二级代理商信息响应
     CONTEXT_WITH_4(pSecAgentTradeInfo);
+}
+
+void WrapTd::MainOnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    ///请求查询资金账户响应
+    CONTEXT_WITH_4(pTradingAccount);
+}
+
+void WrapTd::MainOnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    ///请求查询二级代理商资金校验模式响应
+    CONTEXT_WITH_4(pSecAgentCheckMode);
 }
 
 }
