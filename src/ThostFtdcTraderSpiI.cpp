@@ -162,6 +162,11 @@ void CThostFtdcTraderSpiI::on_async_cb(uv_async_t* handle)
         if(task->api == "OnRtnOpenAccountByBank") { task->ptd->MainOnRtnOpenAccountByBank(&task->data.OpenAccount); continue; };
         if(task->api == "OnRtnCancelAccountByBank") { task->ptd->MainOnRtnCancelAccountByBank(&task->data.CancelAccount); continue; };
         if(task->api == "OnRtnChangeAccountByBank") { task->ptd->MainOnRtnChangeAccountByBank(&task->data.ChangeAccount); continue; };
+        // TODO 穿透式监管新增响应函数
+        if(task->api == "OnRspUserAuthMethod") { task->ptd->MainOnRspUserAuthMethod(&task->data.RspUserAuthMethod, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
+        if(task->api == "OnRspGenUserCaptcha") { task->ptd->MainOnRspGenUserCaptcha(&task->data.RspGenUserCaptcha, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
+        if(task->api == "OnRspGenUserText") { task->ptd->MainOnRspGenUserText(&task->data.RspGenUserText, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
+        if(task->api == "OnRspQrySecAgentTradeInfo") { task->ptd->MainOnRspQrySecAgentTradeInfo(&task->data.SecAgentTradeInfo, &task->RspInfo, task->nRequestID, task->bIsLast); continue; };
     }while(0); 
     task->reinit();
     //uv_close((uv_handle_t*)handle, on_uv_close_cb);
@@ -823,6 +828,31 @@ void CThostFtdcTraderSpiI::OnRtnChangeAccountByBank(CThostFtdcChangeAccountField
 {	
 	///银行发起变更银行账号通知
     QUEUEPUSH(_FUNCTION_, pChangeAccount, sizeof(CThostFtdcChangeAccountField));
+}
+
+// TODO 穿透式监管新增响应函数
+void CThostFtdcTraderSpiI::OnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    ///查询用户当前支持的认证模式的回复
+    QUEUEPUSH(_FUNCTION_, pRspUserAuthMethod, sizeof(CThostFtdcRspUserAuthMethodField), pRspInfo, nRequestID, bIsLast);
+}
+
+void CThostFtdcTraderSpiI::OnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    ///获取图形验证码请求的回复
+    QUEUEPUSH(_FUNCTION_, pRspGenUserCaptcha, sizeof(CThostFtdcRspGenUserCaptchaField), pRspInfo, nRequestID, bIsLast);
+}
+
+void CThostFtdcTraderSpiI::OnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    ///获取短信验证码请求的回复
+    QUEUEPUSH(_FUNCTION_, pRspGenUserText, sizeof(CThostFtdcRspGenUserTextField), pRspInfo, nRequestID, bIsLast);
+}
+
+void CThostFtdcTraderSpiI::OnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast)
+{
+    ///请求查询二级代理商信息响应
+    QUEUEPUSH(_FUNCTION_, pSecAgentTradeInfo, sizeof(CThostFtdcSecAgentTradeInfoField), pRspInfo, nRequestID, bIsLast);
 }
 
 }

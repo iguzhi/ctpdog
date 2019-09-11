@@ -137,6 +137,11 @@ struct taskdata
        CThostFtdcTransferSerialField TransferSerial;
        CThostFtdcUserLogoutField UserLogout;
        CThostFtdcUserPasswordUpdateField UserPasswordUpdate;
+       // TODO 穿透式监管新增结构体
+       CThostFtdcRspUserAuthMethodField RspUserAuthMethod;
+       CThostFtdcRspGenUserCaptchaField RspGenUserCaptcha;
+       CThostFtdcRspGenUserTextField RspGenUserText;
+       CThostFtdcSecAgentTradeInfoField SecAgentTradeInfo;
     }data;
     int nRequestID;
     bool bIsLast;
@@ -299,7 +304,12 @@ class CThostFtdcTraderSpiI : public CThostFtdcTraderSpi
         virtual void MainOnRtnOpenAccountByBank(CThostFtdcOpenAccountField *pOpenAccount) = 0;
         virtual void MainOnRtnCancelAccountByBank(CThostFtdcCancelAccountField *pCancelAccount) = 0;
         virtual void MainOnRtnChangeAccountByBank(CThostFtdcChangeAccountField *pChangeAccount) = 0;
-		
+        // TODO 穿透式监管新增响应接口
+        virtual void MainOnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+		virtual void MainOnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+        virtual void MainOnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) = 0;
+
         ///当客户端与交易后台建立起通信连接时（还未登录前），该方法被调用。
 		virtual void OnFrontConnected();
 		
@@ -636,7 +646,20 @@ class CThostFtdcTraderSpiI : public CThostFtdcTraderSpi
 
 		///银行发起变更银行账号通知
 		virtual void OnRtnChangeAccountByBank(CThostFtdcChangeAccountField *pChangeAccount);
-		
+        
+        // TODO 穿透式监管新增响应接口
+        ///查询用户当前支持的认证模式的回复
+		virtual void OnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+        ///获取图形验证码请求的回复
+        virtual void OnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+        ///获取短信验证码请求的回复
+        virtual void OnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+        ///请求查询二级代理商信息响应
+        virtual void OnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
     private:
  
         taskdata* get_task()

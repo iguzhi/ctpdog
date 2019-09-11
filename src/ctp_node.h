@@ -4502,6 +4502,140 @@ static void set_obj(Local<Object>& obj, CThostFtdcReserveOpenAccountField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
+
+// TODO 穿透式监管新增结构体
+
+static void set_obj(Local<Object>& obj, CThostFtdcRspUserAuthMethodField *p)
+{
+    set_obj(obj, "UsableAuthMethod", &p->UsableAuthMethod);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcRspGenUserCaptchaField *p)
+{
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "UserID", &p->UserID);
+    set_obj(obj, "CaptchaInfoLen", &p->CaptchaInfoLen);
+    set_obj(obj, "CaptchaInfo", &p->CaptchaInfo);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcRspGenUserTextField *p)
+{
+    set_obj(obj, "UserTextSeq", &p->UserTextSeq);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcSecAgentTradeInfoField *p)
+{
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "BrokerSecAgentID", &p->BrokerSecAgentID);
+    set_obj(obj, "InvestorID", &p->InvestorID);
+    set_obj(obj, "LongCustomerName", &p->LongCustomerName);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcMulticastInstrumentField *p)
+{
+    set_obj(obj, "TopicID", &p->TopicID);
+    set_obj(obj, "InstrumentID", &p->InstrumentID);
+    set_obj(obj, "InstrumentNo", &p->InstrumentNo);
+    set_obj(obj, "CodePrice", &p->CodePrice);
+    set_obj(obj, "VolumeMultiple", &p->VolumeMultiple);
+    set_obj(obj, "PriceTick", &p->PriceTick);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcQryMulticastInstrumentField *p)
+{
+    set_obj(obj, "TopicID", &p->TopicID);
+    set_obj(obj, "InstrumentID", &p->InstrumentID);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcUserSystemInfoField *p)
+{
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "UserID", &p->UserID);
+    set_obj(obj, "ClientSystemInfoLen", &p->ClientSystemInfoLen);
+    set_obj(obj, "ClientSystemInfo", &p->ClientSystemInfo);
+    set_obj(obj, "ClientPublicIP", &p->ClientPublicIP);
+    set_obj(obj, "ClientIPPort", &p->ClientIPPort);
+    set_obj(obj, "ClientLoginTime", &p->ClientLoginTime);
+    set_obj(obj, "ClientAppID", &p->ClientAppID);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcReqUserAuthMethodField *p)
+{
+    set_obj(obj, "TradingDay", &p->TradingDay);
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "UserID", &p->UserID);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcReqGenUserCaptchaField *p)
+{
+    set_obj(obj, "TradingDay", &p->TradingDay);
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "UserID", &p->UserID);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcReqGenUserTextField *p)
+{
+    set_obj(obj, "TradingDay", &p->TradingDay);
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "UserID", &p->UserID);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithCaptchaField *p)
+{
+    set_obj(obj, "TradingDay", &p->TradingDay);
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "UserID", &p->UserID);
+    set_obj(obj, "Password", &p->Password);
+    set_obj(obj, "UserProductInfo", &p->UserProductInfo);
+    set_obj(obj, "InterfaceProductInfo", &p->InterfaceProductInfo);
+    set_obj(obj, "ProtocolInfo", &p->ProtocolInfo);
+    set_obj(obj, "MacAddress", &p->MacAddress);
+    set_obj(obj, "ClientIPAddress", &p->ClientIPAddress);
+    set_obj(obj, "LoginRemark", &p->LoginRemark);
+    set_obj(obj, "Captcha", &p->Captcha);
+    set_obj(obj, "ClientIPPort", &p->ClientIPPort);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithTextField *p)
+{
+    set_obj(obj, "TradingDay", &p->TradingDay);
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "UserID", &p->UserID);
+    set_obj(obj, "Password", &p->Password);
+    set_obj(obj, "UserProductInfo", &p->UserProductInfo);
+    set_obj(obj, "InterfaceProductInfo", &p->InterfaceProductInfo);
+    set_obj(obj, "ProtocolInfo", &p->ProtocolInfo);
+    set_obj(obj, "MacAddress", &p->MacAddress);
+    set_obj(obj, "ClientIPAddress", &p->ClientIPAddress);
+    set_obj(obj, "LoginRemark", &p->LoginRemark);
+    set_obj(obj, "Text", &p->Text);
+    set_obj(obj, "ClientIPPort", &p->ClientIPPort);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithOTPField *p)
+{
+    set_obj(obj, "TradingDay", &p->TradingDay);
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "UserID", &p->UserID);
+    set_obj(obj, "Password", &p->Password);
+    set_obj(obj, "UserProductInfo", &p->UserProductInfo);
+    set_obj(obj, "InterfaceProductInfo", &p->InterfaceProductInfo);
+    set_obj(obj, "ProtocolInfo", &p->ProtocolInfo);
+    set_obj(obj, "MacAddress", &p->MacAddress);
+    set_obj(obj, "ClientIPAddress", &p->ClientIPAddress);
+    set_obj(obj, "LoginRemark", &p->LoginRemark);
+    set_obj(obj, "OTPPassword", &p->OTPPassword);
+    set_obj(obj, "ClientIPPort", &p->ClientIPPort);
+}
+
+static void set_obj(Local<Object>& obj, CThostFtdcQrySecAgentTradeInfoField *p)
+{
+    set_obj(obj, "BrokerID", &p->BrokerID);
+    set_obj(obj, "BrokerSecAgentID", &p->BrokerSecAgentID);
+}
+
+////////////////////////////// set_struct /////////////////////////////////////////////
+
 static void set_struct(Local<Object>& obj, CThostFtdcDisseminationField *p)
 {
     set_struct(obj, "SequenceSeries", &p->SequenceSeries, sizeof(p->SequenceSeries));
@@ -8842,6 +8976,8 @@ static void set_struct(Local<Object>& obj, CThostFtdcReserveOpenAccountField *p)
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
 
+// TODO 穿透式监管新增结构体
+
 static void set_struct(Local<Object>& obj, CThostFtdcMulticastInstrumentField *p)
 {
     set_struct(obj, "TopicID", &p->TopicID, sizeof(p->TopicID));
@@ -8856,6 +8992,119 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryMulticastInstrumentField
 {
     set_struct(obj, "TopicID", &p->TopicID, sizeof(p->TopicID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcUserSystemInfoField *p)
+{
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
+    set_struct(obj, "ClientSystemInfoLen", &p->ClientSystemInfoLen, sizeof(p->ClientSystemInfoLen));
+    set_struct(obj, "ClientSystemInfo", &p->ClientSystemInfo, sizeof(p->ClientSystemInfo));
+    set_struct(obj, "ClientPublicIP", &p->ClientPublicIP, sizeof(p->ClientPublicIP));
+    set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
+    set_struct(obj, "ClientLoginTime", &p->ClientLoginTime, sizeof(p->ClientLoginTime));
+    set_struct(obj, "ClientAppID", &p->ClientAppID, sizeof(p->ClientAppID));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcReqUserAuthMethodField *p)
+{
+    set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcReqGenUserCaptchaField *p)
+{
+    set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcReqGenUserTextField *p)
+{
+    set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithCaptchaField *p)
+{
+    set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
+    set_struct(obj, "Password", &p->Password, sizeof(p->Password));
+    set_struct(obj, "UserProductInfo", &p->UserProductInfo, sizeof(p->UserProductInfo));
+    set_struct(obj, "InterfaceProductInfo", &p->InterfaceProductInfo, sizeof(p->InterfaceProductInfo));
+    set_struct(obj, "ProtocolInfo", &p->ProtocolInfo, sizeof(p->ProtocolInfo));
+    set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
+    set_struct(obj, "ClientIPAddress", &p->ClientIPAddress, sizeof(p->ClientIPAddress));
+    set_struct(obj, "LoginRemark", &p->LoginRemark, sizeof(p->LoginRemark));
+    set_struct(obj, "Captcha", &p->Captcha, sizeof(p->Captcha));
+    set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithTextField *p)
+{
+    set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
+    set_struct(obj, "Password", &p->Password, sizeof(p->Password));
+    set_struct(obj, "UserProductInfo", &p->UserProductInfo, sizeof(p->UserProductInfo));
+    set_struct(obj, "InterfaceProductInfo", &p->InterfaceProductInfo, sizeof(p->InterfaceProductInfo));
+    set_struct(obj, "ProtocolInfo", &p->ProtocolInfo, sizeof(p->ProtocolInfo));
+    set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
+    set_struct(obj, "ClientIPAddress", &p->ClientIPAddress, sizeof(p->ClientIPAddress));
+    set_struct(obj, "LoginRemark", &p->LoginRemark, sizeof(p->LoginRemark));
+    set_struct(obj, "Text", &p->Text, sizeof(p->Text));
+    set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithOTPField *p)
+{
+    set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
+    set_struct(obj, "Password", &p->Password, sizeof(p->Password));
+    set_struct(obj, "UserProductInfo", &p->UserProductInfo, sizeof(p->UserProductInfo));
+    set_struct(obj, "InterfaceProductInfo", &p->InterfaceProductInfo, sizeof(p->InterfaceProductInfo));
+    set_struct(obj, "ProtocolInfo", &p->ProtocolInfo, sizeof(p->ProtocolInfo));
+    set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
+    set_struct(obj, "ClientIPAddress", &p->ClientIPAddress, sizeof(p->ClientIPAddress));
+    set_struct(obj, "LoginRemark", &p->LoginRemark, sizeof(p->LoginRemark));
+    set_struct(obj, "OTPPassword", &p->OTPPassword, sizeof(p->OTPPassword));
+    set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcQrySecAgentTradeInfoField *p)
+{
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "BrokerSecAgentID", &p->BrokerSecAgentID, sizeof(p->BrokerSecAgentID));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcRspUserAuthMethodField *p)
+{
+    set_struct(obj, "UsableAuthMethod", &p->UsableAuthMethod, sizeof(p->UsableAuthMethod));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcRspGenUserCaptchaField *p)
+{
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
+    set_struct(obj, "CaptchaInfoLen", &p->CaptchaInfoLen, sizeof(p->CaptchaInfoLen));
+    set_struct(obj, "CaptchaInfo", &p->CaptchaInfo, sizeof(p->CaptchaInfo));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcRspGenUserTextField *p)
+{
+    set_struct(obj, "UserTextSeq", &p->UserTextSeq, sizeof(p->UserTextSeq));
+}
+
+static void set_struct(Local<Object>& obj, CThostFtdcSecAgentTradeInfoField *p)
+{
+    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
+    set_struct(obj, "BrokerSecAgentID", &p->BrokerSecAgentID, sizeof(p->BrokerSecAgentID));
+    set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
+    set_struct(obj, "LongCustomerName", &p->LongCustomerName, sizeof(p->LongCustomerName));
 }
 
 };

@@ -131,6 +131,16 @@ void WrapTd::Init(v8::Isolate* isolate)
     NODE_SET_PROTOTYPE_METHOD(tpl, "ReqFromFutureToBankByFuture"     , ReqFromFutureToBankByFuture        );
     NODE_SET_PROTOTYPE_METHOD(tpl, "ReqQueryBankAccountMoneyByFuture", ReqQueryBankAccountMoneyByFuture   );
     NODE_SET_PROTOTYPE_METHOD(tpl, "ReqQryInvestorPositionCombineDetail",ReqQryInvestorPositionCombineDetail);
+    // TODO 穿透式监管新增主动请求接口
+    NODE_SET_PROTOTYPE_METHOD(tpl, "RegisterUserSystemInfo"          , RegisterUserSystemInfo             );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "SubmitUserSystemInfo"            , SubmitUserSystemInfo               );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqUserAuthMethod"               , ReqUserAuthMethod                  );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqGenUserCaptcha"               , ReqGenUserCaptcha                  );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqGenUserText"                  , ReqGenUserText                     );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqUserLoginWithCaptcha"         , ReqUserLoginWithCaptcha            );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqUserLoginWithText"            , ReqUserLoginWithText               );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqUserLoginWithOTP"             , ReqUserLoginWithOTP                );
+    NODE_SET_PROTOTYPE_METHOD(tpl, "ReqQrySecAgentTradeInfo"         , ReqQrySecAgentTradeInfo            );
     NODE_SET_PROTOTYPE_METHOD(tpl, "On", On);
     constructor.Reset(isolate, tpl->GetFunction());
 
@@ -246,6 +256,11 @@ void WrapTd::Init(v8::Isolate* isolate)
     m_event.insert("OnRtnOpenAccountByBank")                    ;
     m_event.insert("OnRtnCancelAccountByBank")                  ;
     m_event.insert("OnRtnChangeAccountByBank")                  ;
+    // TODO 穿透式监管新增响应接口
+    m_event.insert("OnRspUserAuthMethod")                       ;
+    m_event.insert("OnRspGenUserCaptcha")                       ;
+    m_event.insert("OnRspGenUserText")                          ;
+    m_event.insert("OnRspQrySecAgentTradeInfo")                 ;
 }
 
 void WrapTd::New(const FunctionCallbackInfo<Value>& args)
@@ -1007,7 +1022,94 @@ void WrapTd::ReqQueryBankAccountMoneyByFuture(const v8::FunctionCallbackInfo<v8:
     args.GetReturnValue().Set(Int32::New(isolate, r));
 }
 
-		
+// TODO 穿透式监管新增主动请求接口
+void WrapTd::RegisterUserSystemInfo(const FunctionCallbackInfo<Value>& args)
+{
+    WrapTd* obj = node::ObjectWrap::Unwrap<WrapTd>(args.Holder());
+    Isolate* isolate = args.GetIsolate();
+    if (args[0]->IsUndefined() || !args[0]->IsObject()) 
+    {          
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments"))); 
+        return;
+    }                                       
+    Local<Object> objjs = args[0]->ToObject();
+    CThostFtdcUserSystemInfoField req;
+    CSFunction::set_struct(objjs, &req);
+    obj->GetTdApi()->RegisterUserSystemInfo(&req);
+    args.GetReturnValue().Set(Undefined(isolate));
+}
+
+void WrapTd::SubmitUserSystemInfo(const FunctionCallbackInfo<Value>& args)
+{
+    WrapTd* obj = node::ObjectWrap::Unwrap<WrapTd>(args.Holder());
+    Isolate* isolate = args.GetIsolate();
+    if (args[0]->IsUndefined() || !args[0]->IsObject()) 
+    {          
+        isolate->ThrowException(Exception::TypeError(String::NewFromUtf8(isolate, "Wrong arguments"))); 
+        return;
+    }                                       
+    Local<Object> objjs = args[0]->ToObject();
+    CThostFtdcUserSystemInfoField req;
+    CSFunction::set_struct(objjs, &req);
+    obj->GetTdApi()->SubmitUserSystemInfo(&req);
+    args.GetReturnValue().Set(Undefined(isolate));
+}		
+
+void WrapTd::ReqUserAuthMethod(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcReqUserAuthMethodField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqUserAuthMethod(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
+void WrapTd::ReqGenUserCaptcha(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcReqGenUserCaptchaField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqGenUserCaptcha(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
+void WrapTd::ReqGenUserText(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcReqGenUserTextField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqGenUserText(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
+void WrapTd::ReqUserLoginWithCaptcha(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcReqUserLoginWithCaptchaField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqUserLoginWithCaptcha(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
+void WrapTd::ReqUserLoginWithText(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcReqUserLoginWithTextField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqUserLoginWithText(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
+void WrapTd::ReqUserLoginWithOTP(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcReqUserLoginWithOTPField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqUserLoginWithOTP(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
+
+void WrapTd::ReqQrySecAgentTradeInfo(const FunctionCallbackInfo<Value>& args)
+{
+    CThostFtdcQrySecAgentTradeInfoField req;                          
+    REQ_WITH_REQID(req);
+    int r = obj->GetTdApi()->ReqQrySecAgentTradeInfo(&req, reqid);
+    args.GetReturnValue().Set(Int32::New(isolate, r));
+}
 
 ////////////////////////////////ctp on 回调////////////////////////////////////////////////
 #define CONTEXT() \
@@ -1764,6 +1866,31 @@ void WrapTd::MainOnRtnChangeAccountByBank(CThostFtdcChangeAccountField *pChangeA
 {	
     ///银行发起变更银行账号通知
     CONTEXT_WITH_1(pChangeAccount);
+}
+
+// TODO 穿透式监管新增响应接口
+void WrapTd::MainOnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+{
+    ///查询用户当前支持的认证模式的回复
+    CONTEXT_WITH_4(pRspUserAuthMethod);
+}
+
+void WrapTd::MainOnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+{
+    ///获取图形验证码请求的回复
+    CONTEXT_WITH_4(pRspGenUserCaptcha);
+}
+
+void WrapTd:: MainOnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+{
+    ///获取短信验证码请求的回复
+    CONTEXT_WITH_4(pRspGenUserText);
+}
+
+void WrapTd:: MainOnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) 
+{
+    ///请求查询二级代理商信息响应
+    CONTEXT_WITH_4(pSecAgentTradeInfo);
 }
 
 }

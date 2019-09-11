@@ -86,7 +86,6 @@ namespace td
             static void ReqBatchOrderAction(const v8::FunctionCallbackInfo<v8::Value>& args);
             static void ReqCombActionInsert(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-            //TODO
             static void ReqQryInvestor(const v8::FunctionCallbackInfo<v8::Value>& args);
             static void ReqQryTradingCode(const v8::FunctionCallbackInfo<v8::Value>& args);
             static void ReqQryInstrumentMarginRate(const v8::FunctionCallbackInfo<v8::Value>& args);
@@ -130,7 +129,7 @@ namespace td
             static void ReqFromFutureToBankByFuture(const v8::FunctionCallbackInfo<v8::Value>& args);
             static void ReqQueryBankAccountMoneyByFuture(const v8::FunctionCallbackInfo<v8::Value>& args);
 
-            // 穿透式监控新增接口
+            // TODO 穿透式监控新增主动请求接口
 
             // 注册用户终端信息，用于中继服务器多连接模式
             // 需要在终端认证成功后，用户登录前调用该接口
@@ -493,6 +492,20 @@ namespace td
 
             ///银行发起变更银行账号通知
             virtual void MainOnRtnChangeAccountByBank(CThostFtdcChangeAccountField *pChangeAccount);
+            
+            // TODO 穿透式监控新增响应接口
+
+            /// 查询用户当前支持的认证模式的回复
+            virtual void MainOnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+            /// 获取图形验证码请求的回复
+            virtual void MainOnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+            /// 获取短信验证码请求的回复
+            virtual void MainOnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
+
+            /// 请求查询二级代理商信息响应
+            virtual void MainOnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast);
 
             bool CanCallback(string event)
             {
