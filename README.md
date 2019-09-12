@@ -1,5 +1,5 @@
 # warning
-目前仅支持linux64和win64平台(win32平台未测试，理论上应该也支持)
+目前仅支持linux64和win64平台(win32平台未测试，理论上支持)
 
 支持的nodejs版本: 8.x.x, 如: 8.16.1  ***(8以上版本不被支持)***
 
@@ -21,121 +21,7 @@ node ./example/ctpapp.js
 请参看[example](https://github.com/iamweilee/nodectp-example.git)
 
 # version
-穿透式
-
-
-### 新增接口
-
-#### TD
-查询用户当前支持的认证模式的回复
-```
-virtual void OnRspUserAuthMethod(CThostFtdcRspUserAuthMethodField *pRspUserAuthMethod, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
-```
-
-获取图形验证码请求的回复
-```
-virtual void OnRspGenUserCaptcha(CThostFtdcRspGenUserCaptchaField *pRspGenUserCaptcha, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
-```
-
-获取短信验证码请求的回复
-```
-virtual void OnRspGenUserText(CThostFtdcRspGenUserTextField *pRspGenUserText, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
-```
-
-请求查询二级代理商信息响应
-```
-virtual void OnRspQrySecAgentTradeInfo(CThostFtdcSecAgentTradeInfoField *pSecAgentTradeInfo, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
-```
-
-请求查询资金账户响应
-```
-virtual void OnRspQrySecAgentTradingAccount(CThostFtdcTradingAccountField *pTradingAccount, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
-```
-
-请求查询二级代理商资金校验模式响应
-```
-virtual void OnRspQrySecAgentCheckMode(CThostFtdcSecAgentCheckModeField *pSecAgentCheckMode, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
-```
-
-注册用户终端信息，用于中继服务器多连接模式
-需要在终端认证成功后，用户登录前调用该接口
-```
-virtual int RegisterUserSystemInfo(CThostFtdcUserSystemInfoField *pUserSystemInfo) = 0;
-```
-
-上报用户终端信息，用于中继服务器操作员登录模式
-操作员登录后，可以多次调用该接口上报客户信息
-```
-virtual int SubmitUserSystemInfo(CThostFtdcUserSystemInfoField *pUserSystemInfo) = 0;
-```
-
-查询用户当前支持的认证模式
-```
-virtual int ReqUserAuthMethod(CThostFtdcReqUserAuthMethodField *pReqUserAuthMethod, int nRequestID) = 0;
-```
-
-用户发出获取图形验证码请求
-```
-virtual int ReqGenUserCaptcha(CThostFtdcReqGenUserCaptchaField *pReqGenUserCaptcha, int nRequestID) = 0;
-```
-
-用户发出获取短信验证码请求
-```
-virtual int ReqGenUserText(CThostFtdcReqGenUserTextField *pReqGenUserText, int nRequestID) = 0;
-```
-
-用户发出带有图片验证码的登陆请求
-```
-virtual int ReqUserLoginWithCaptcha(CThostFtdcReqUserLoginWithCaptchaField *pReqUserLoginWithCaptcha, int nRequestID) = 0;
-```
-
-用户发出带有短信验证码的登陆请求
-```
-virtual int ReqUserLoginWithText(CThostFtdcReqUserLoginWithTextField *pReqUserLoginWithText, int nRequestID) = 0;
-```
-
-用户发出带有动态口令的登陆请求
-```
-virtual int ReqUserLoginWithOTP(CThostFtdcReqUserLoginWithOTPField *pReqUserLoginWithOTP, int nRequestID) = 0;
-```
-
-请求查询资金账户
-```
-virtual int ReqQrySecAgentTradingAccount(CThostFtdcQryTradingAccountField *pQryTradingAccount, int nRequestID) = 0;
-```
-
-请求查询二级代理商资金校验模式
-```
-virtual int ReqQrySecAgentCheckMode(CThostFtdcQrySecAgentCheckModeField *pQrySecAgentCheckMode, int nRequestID) = 0;
-```
-
-请求查询二级代理商信息
-```
-virtual int ReqQrySecAgentTradeInfo(CThostFtdcQrySecAgentTradeInfoField *pQrySecAgentTradeInfo, int nRequestID) = 0;
-```
-
-#### MD
-
-请求查询组播合约
-```
-virtual int ReqQryMulticastInstrument(CThostFtdcQryMulticastInstrumentField *pQryMulticastInstrument, int nRequestID) = 0;
-```
-
-请求查询组播合约响应
-```
-virtual void OnRspQryMulticastInstrument(CThostFtdcMulticastInstrumentField *pMulticastInstrument, CThostFtdcRspInfoField *pRspInfo, int nRequestID, bool bIsLast) {};
-```
-
-### 删除接口
-登录请求2
-```
-virtual int ReqUserLogin2(CThostFtdcReqUserLoginField *pReqUserLogin, int nRequestID) = 0;
-```
-
-用户口令更新请求2
-```
-virtual int ReqUserPasswordUpdate2(CThostFtdcUserPasswordUpdateField *pUserPasswordUpdate, int nRequestID) = 0;
-```
+适配看穿式监管库, 实配的库版本: 6.3.15_20190220、v6.3.15_P2_mdapi_se_20190403 (实现了ctp所有的接口, 其中包含客户端认证及组播接口)
 
 ### 可能遇到的报错问题
 执行 `yarn build` 命令时可能会遇到node.lib文件损坏的情况, 此时可去官网下载node.lib文件替换, 下载地址：[https://nodejs.org/dist/latest-v8.x/win-x64/node.lib]
