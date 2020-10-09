@@ -1,16 +1,18 @@
 ﻿#ifndef __NODE_CTP__
 #define __NODE_CTP__
 
-#include <v8.h>
+// #include <v8.h>
+#include <napi.h>
 #include <string>
 #include "ThostFtdcUserApiStruct.h"
 
-using  v8::Local;
-using  v8::Isolate;
-using  v8::Object;
-using  v8::String;
-using  v8::Exception;
-using  v8::Value;
+using namespace Napi;
+// using  v8::Local;
+// using  v8::Isolate;
+// using  v8::Object;
+// using  v8::String;
+// using  v8::Exception;
+// using  v8::Value;
 
 class CSFunction
 {
@@ -19,23 +21,23 @@ public:
 
 #ifdef WIN32
 #include <windows.h>
-static string GBK2UTF8(string strGBK)  
-{  
-    string strOutUTF8 = "";  
-    WCHAR * str1;  
-    int n = MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, NULL, 0);  
-    str1 = new WCHAR[n];  
-    MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, str1, n);  
-    n = WideCharToMultiByte(CP_UTF8, 0, str1, -1, NULL, 0, NULL, NULL);  
-    char * str2 = new char[n];  
-    WideCharToMultiByte(CP_UTF8, 0, str1, -1, str2, n, NULL, NULL);  
-    strOutUTF8 = str2;  
-    delete[]str1;  
-    str1 = NULL;  
-    delete[]str2;  
-    str2 = NULL;  
-    return strOutUTF8;  
-}  
+static string GBK2UTF8(string strGBK)
+{
+    string strOutUTF8 = "";
+    WCHAR * str1;
+    int n = MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, NULL, 0);
+    str1 = new WCHAR[n];
+    MultiByteToWideChar(CP_ACP, 0, strGBK.c_str(), -1, str1, n);
+    n = WideCharToMultiByte(CP_UTF8, 0, str1, -1, NULL, 0, NULL, NULL);
+    char * str2 = new char[n];
+    WideCharToMultiByte(CP_UTF8, 0, str1, -1, str2, n, NULL, NULL);
+    strOutUTF8 = str2;
+    delete[]str1;
+    str1 = NULL;
+    delete[]str2;
+    str2 = NULL;
+    return strOutUTF8;
+}
 #else
 static string GBK2UTF8(string src)
 {
@@ -52,17 +54,16 @@ static string GBK2UTF8(string src)
     if(conv == 0) return "";
     iconv(conv, &pin, &inlen, &pout, &outlen);
     iconv_close(conv);
-    
+
     string tmp = dest;
     delete dest;
     return tmp;
 }
 #endif
 
-static void set_struct(Local<Object>& obj, const char* key, void* dest, int len)
+static void set_struct(Object obj, const char* key, void* dest, int len)
 {
-    v8::Isolate* isolate  = v8::Isolate::GetCurrent();
-    Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
+    Value v = obj.Get(key);
     if (v->IsUndefined())
     {
         memset(dest, 0, len);
@@ -74,10 +75,9 @@ static void set_struct(Local<Object>& obj, const char* key, void* dest, int len)
     if(len>1) ((char*)dest)[len-1] = '0';
 }
 
-static void set_struct(Local<Object>& obj, const char* key, char* dest, int len)
+static void set_struct(Object obj, const char* key, char* dest, int len)
 {
-    v8::Isolate* isolate  = v8::Isolate::GetCurrent();
-    Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
+    Value v = obj.Get(key);
     if (v->IsUndefined())
     {
         memset(dest, 0, len);
@@ -89,10 +89,9 @@ static void set_struct(Local<Object>& obj, const char* key, char* dest, int len)
     if(len>1) dest[len-1] = '0';
 }
 
-static void set_struct(Local<Object>& obj, const char* key, int* dest, int len=0)
+static void set_struct(Object obj, const char* key, int* dest, int len=0)
 {
-    v8::Isolate* isolate  = v8::Isolate::GetCurrent();
-    Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
+    Value v = obj.Get(key);
     if (v->IsUndefined())
     {
         dest = 0;
@@ -102,10 +101,9 @@ static void set_struct(Local<Object>& obj, const char* key, int* dest, int len=0
     *dest = v->Int32Value();
 }
 
-static void set_struct(Local<Object>& obj, const char* key, double* dest, int len=0)
+static void set_struct(Object obj, const char* key, double* dest, int len=0)
 {
-    v8::Isolate* isolate  = v8::Isolate::GetCurrent();
-    Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
+    Value v = obj.Get(key);
     if (v->IsUndefined() || !v->IsNumber())
     {
         dest = 0;
@@ -115,10 +113,9 @@ static void set_struct(Local<Object>& obj, const char* key, double* dest, int le
     *dest = v->NumberValue();
 }
 
-static void set_struct(Local<Object>& obj, const char* key, float* dest, int len=0)
+static void set_struct(Object obj, const char* key, float* dest, int len=0)
 {
-    v8::Isolate* isolate  = v8::Isolate::GetCurrent();
-    Local<Value> v = obj->Get(v8::String::NewFromUtf8(isolate, key));
+    Value v = obj.Get(key);
     if (v->IsUndefined() || !v->IsNumber())
     {
         dest = 0;
@@ -130,45 +127,45 @@ static void set_struct(Local<Object>& obj, const char* key, float* dest, int len
 
 
 //处理ctp定义的字符数组指针类型
-static void set_obj(v8::Local<v8::Object>& obj, const char* key, void* v)
+static void set_obj(Object obj, const char* key, void* v)
 {
     string u = GBK2UTF8((char*)v);
-    obj->Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key), v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), u.c_str()));
+    obj.Set(key, u.c_str());
 }
 
 
-static void set_obj(v8::Local<v8::Object>& obj, const char* key, char* v)
+static void set_obj(Object obj, const char* key, char* v)
 {
     char s[2]= {0};
     s[0] = *v;
-    obj->Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key), v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), s));
+    obj.Set(key, s);
 }
 
-static void set_obj(v8::Local<v8::Object>& obj, const char* key, int* v)
+static void set_obj(Object obj, const char* key, int* v)
 {
-    obj->Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key), v8::Int32::New(v8::Isolate::GetCurrent(), *v));
+    obj.Set(key, *v);
 }
 
-static void set_obj(v8::Local<v8::Object>& obj, const char* key, short int* v)
+static void set_obj(Object obj, const char* key, short int* v)
 {
-    obj->Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key), v8::Int32::New(v8::Isolate::GetCurrent(), (int)*v));
+    obj.Set(key, (int)*v);
 }
 
-static void set_obj(v8::Local<v8::Object>& obj, const char* key, float* v)
+static void set_obj(Object obj, const char* key, float* v)
 {
-    obj->Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key), v8::Number::New(v8::Isolate::GetCurrent(), *v));
+    obj.Set(key, *v);
 }
 
-static void set_obj(v8::Local<v8::Object>& obj, const char* key, double* v)
+static void set_obj(Object obj, const char* key, double* v)
 {
-    obj->Set(v8::String::NewFromUtf8(v8::Isolate::GetCurrent(), key), v8::Number::New(v8::Isolate::GetCurrent(), *v));
+    obj.Set(key, *v);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcDisseminationField *p)
+static void set_obj(Object obj, CThostFtdcDisseminationField *p)
 {
     set_obj(obj, "SequenceSeries", &p->SequenceSeries);
     set_obj(obj, "SequenceNo", &p->SequenceNo);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginField *p)
+static void set_obj(Object obj, CThostFtdcReqUserLoginField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -183,7 +180,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginField *p)
     set_obj(obj, "LoginRemark", &p->LoginRemark);
     set_obj(obj, "ClientIPPort", &p->ClientIPPort);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspUserLoginField *p)
+static void set_obj(Object obj, CThostFtdcRspUserLoginField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "LoginTime", &p->LoginTime);
@@ -199,17 +196,17 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspUserLoginField *p)
     set_obj(obj, "FFEXTime", &p->FFEXTime);
     set_obj(obj, "INETime", &p->INETime);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcUserLogoutField *p)
+static void set_obj(Object obj, CThostFtdcUserLogoutField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcForceUserLogoutField *p)
+static void set_obj(Object obj, CThostFtdcForceUserLogoutField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqAuthenticateField *p)
+static void set_obj(Object obj, CThostFtdcReqAuthenticateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -217,7 +214,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqAuthenticateField *p)
     set_obj(obj, "AuthCode", &p->AuthCode);
     set_obj(obj, "AppID", &p->AppID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspAuthenticateField *p)
+static void set_obj(Object obj, CThostFtdcRspAuthenticateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -225,7 +222,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspAuthenticateField *p)
     set_obj(obj, "AppID", &p->AppID);
     set_obj(obj, "AppType", &p->AppType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcAuthenticationInfoField *p)
+static void set_obj(Object obj, CThostFtdcAuthenticationInfoField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -235,7 +232,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcAuthenticationInfoField *p)
     set_obj(obj, "AppID", &p->AppID);
     set_obj(obj, "AppType", &p->AppType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferHeaderField *p)
+static void set_obj(Object obj, CThostFtdcTransferHeaderField *p)
 {
     set_obj(obj, "Version", &p->Version);
     set_obj(obj, "TradeCode", &p->TradeCode);
@@ -251,7 +248,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTransferHeaderField *p)
     set_obj(obj, "SessionID", &p->SessionID);
     set_obj(obj, "RequestID", &p->RequestID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferBankToFutureReqField *p)
+static void set_obj(Object obj, CThostFtdcTransferBankToFutureReqField *p)
 {
     set_obj(obj, "FutureAccount", &p->FutureAccount);
     set_obj(obj, "FuturePwdFlag", &p->FuturePwdFlag);
@@ -260,7 +257,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTransferBankToFutureReqField *
     set_obj(obj, "CustFee", &p->CustFee);
     set_obj(obj, "CurrencyCode", &p->CurrencyCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferBankToFutureRspField *p)
+static void set_obj(Object obj, CThostFtdcTransferBankToFutureRspField *p)
 {
     set_obj(obj, "RetCode", &p->RetCode);
     set_obj(obj, "RetInfo", &p->RetInfo);
@@ -269,7 +266,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTransferBankToFutureRspField *
     set_obj(obj, "CustFee", &p->CustFee);
     set_obj(obj, "CurrencyCode", &p->CurrencyCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferFutureToBankReqField *p)
+static void set_obj(Object obj, CThostFtdcTransferFutureToBankReqField *p)
 {
     set_obj(obj, "FutureAccount", &p->FutureAccount);
     set_obj(obj, "FuturePwdFlag", &p->FuturePwdFlag);
@@ -278,7 +275,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTransferFutureToBankReqField *
     set_obj(obj, "CustFee", &p->CustFee);
     set_obj(obj, "CurrencyCode", &p->CurrencyCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferFutureToBankRspField *p)
+static void set_obj(Object obj, CThostFtdcTransferFutureToBankRspField *p)
 {
     set_obj(obj, "RetCode", &p->RetCode);
     set_obj(obj, "RetInfo", &p->RetInfo);
@@ -287,14 +284,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcTransferFutureToBankRspField *
     set_obj(obj, "CustFee", &p->CustFee);
     set_obj(obj, "CurrencyCode", &p->CurrencyCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferQryBankReqField *p)
+static void set_obj(Object obj, CThostFtdcTransferQryBankReqField *p)
 {
     set_obj(obj, "FutureAccount", &p->FutureAccount);
     set_obj(obj, "FuturePwdFlag", &p->FuturePwdFlag);
     set_obj(obj, "FutureAccPwd", &p->FutureAccPwd);
     set_obj(obj, "CurrencyCode", &p->CurrencyCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferQryBankRspField *p)
+static void set_obj(Object obj, CThostFtdcTransferQryBankRspField *p)
 {
     set_obj(obj, "RetCode", &p->RetCode);
     set_obj(obj, "RetInfo", &p->RetInfo);
@@ -304,11 +301,11 @@ static void set_obj(Local<Object>& obj, CThostFtdcTransferQryBankRspField *p)
     set_obj(obj, "FetchAmt", &p->FetchAmt);
     set_obj(obj, "CurrencyCode", &p->CurrencyCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferQryDetailReqField *p)
+static void set_obj(Object obj, CThostFtdcTransferQryDetailReqField *p)
 {
     set_obj(obj, "FutureAccount", &p->FutureAccount);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferQryDetailRspField *p)
+static void set_obj(Object obj, CThostFtdcTransferQryDetailRspField *p)
 {
     set_obj(obj, "TradeDate", &p->TradeDate);
     set_obj(obj, "TradeTime", &p->TradeTime);
@@ -325,18 +322,18 @@ static void set_obj(Local<Object>& obj, CThostFtdcTransferQryDetailRspField *p)
     set_obj(obj, "TxAmount", &p->TxAmount);
     set_obj(obj, "Flag", &p->Flag);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspInfoField *p)
+static void set_obj(Object obj, CThostFtdcRspInfoField *p)
 {
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeField *p)
+static void set_obj(Object obj, CThostFtdcExchangeField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ExchangeName", &p->ExchangeName);
     set_obj(obj, "ExchangeProperty", &p->ExchangeProperty);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcProductField *p)
+static void set_obj(Object obj, CThostFtdcProductField *p)
 {
     set_obj(obj, "ProductID", &p->ProductID);
     set_obj(obj, "ProductName", &p->ProductName);
@@ -356,7 +353,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcProductField *p)
     set_obj(obj, "ExchangeProductID", &p->ExchangeProductID);
     set_obj(obj, "UnderlyingMultiple", &p->UnderlyingMultiple);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInstrumentField *p)
+static void set_obj(Object obj, CThostFtdcInstrumentField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
@@ -390,14 +387,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcInstrumentField *p)
     set_obj(obj, "UnderlyingMultiple", &p->UnderlyingMultiple);
     set_obj(obj, "CombinationType", &p->CombinationType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerField *p)
+static void set_obj(Object obj, CThostFtdcBrokerField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "BrokerAbbr", &p->BrokerAbbr);
     set_obj(obj, "BrokerName", &p->BrokerName);
     set_obj(obj, "IsActive", &p->IsActive);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTraderField *p)
+static void set_obj(Object obj, CThostFtdcTraderField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
@@ -406,7 +403,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTraderField *p)
     set_obj(obj, "InstallCount", &p->InstallCount);
     set_obj(obj, "BrokerID", &p->BrokerID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInvestorField *p)
+static void set_obj(Object obj, CThostFtdcInvestorField *p)
 {
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -422,7 +419,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInvestorField *p)
     set_obj(obj, "CommModelID", &p->CommModelID);
     set_obj(obj, "MarginModelID", &p->MarginModelID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradingCodeField *p)
+static void set_obj(Object obj, CThostFtdcTradingCodeField *p)
 {
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -431,32 +428,32 @@ static void set_obj(Local<Object>& obj, CThostFtdcTradingCodeField *p)
     set_obj(obj, "IsActive", &p->IsActive);
     set_obj(obj, "ClientIDType", &p->ClientIDType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcPartBrokerField *p)
+static void set_obj(Object obj, CThostFtdcPartBrokerField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "IsActive", &p->IsActive);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSuperUserField *p)
+static void set_obj(Object obj, CThostFtdcSuperUserField *p)
 {
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "UserName", &p->UserName);
     set_obj(obj, "Password", &p->Password);
     set_obj(obj, "IsActive", &p->IsActive);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSuperUserFunctionField *p)
+static void set_obj(Object obj, CThostFtdcSuperUserFunctionField *p)
 {
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "FunctionCode", &p->FunctionCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInvestorGroupField *p)
+static void set_obj(Object obj, CThostFtdcInvestorGroupField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorGroupID", &p->InvestorGroupID);
     set_obj(obj, "InvestorGroupName", &p->InvestorGroupName);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradingAccountField *p)
+static void set_obj(Object obj, CThostFtdcTradingAccountField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "AccountID", &p->AccountID);
@@ -505,7 +502,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTradingAccountField *p)
     set_obj(obj, "SpecProductPositionProfitByAlg", &p->SpecProductPositionProfitByAlg);
     set_obj(obj, "SpecProductExchangeMargin", &p->SpecProductExchangeMargin);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInvestorPositionField *p)
+static void set_obj(Object obj, CThostFtdcInvestorPositionField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -551,7 +548,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInvestorPositionField *p)
     set_obj(obj, "StrikeFrozenAmount", &p->StrikeFrozenAmount);
     set_obj(obj, "AbandonFrozen", &p->AbandonFrozen);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInstrumentMarginRateField *p)
+static void set_obj(Object obj, CThostFtdcInstrumentMarginRateField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -564,7 +561,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInstrumentMarginRateField *p)
     set_obj(obj, "ShortMarginRatioByVolume", &p->ShortMarginRatioByVolume);
     set_obj(obj, "IsRelative", &p->IsRelative);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInstrumentCommissionRateField *p)
+static void set_obj(Object obj, CThostFtdcInstrumentCommissionRateField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -577,7 +574,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInstrumentCommissionRateField 
     set_obj(obj, "CloseTodayRatioByMoney", &p->CloseTodayRatioByMoney);
     set_obj(obj, "CloseTodayRatioByVolume", &p->CloseTodayRatioByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcDepthMarketDataField *p)
+static void set_obj(Object obj, CThostFtdcDepthMarketDataField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
@@ -624,7 +621,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcDepthMarketDataField *p)
     set_obj(obj, "AveragePrice", &p->AveragePrice);
     set_obj(obj, "ActionDay", &p->ActionDay);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInstrumentTradingRightField *p)
+static void set_obj(Object obj, CThostFtdcInstrumentTradingRightField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -632,7 +629,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInstrumentTradingRightField *p
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "TradingRight", &p->TradingRight);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserField *p)
+static void set_obj(Object obj, CThostFtdcBrokerUserField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -641,19 +638,19 @@ static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserField *p)
     set_obj(obj, "IsActive", &p->IsActive);
     set_obj(obj, "IsUsingOTP", &p->IsUsingOTP);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserPasswordField *p)
+static void set_obj(Object obj, CThostFtdcBrokerUserPasswordField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "Password", &p->Password);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserFunctionField *p)
+static void set_obj(Object obj, CThostFtdcBrokerUserFunctionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "BrokerFunctionCode", &p->BrokerFunctionCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTraderOfferField *p)
+static void set_obj(Object obj, CThostFtdcTraderOfferField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
@@ -675,7 +672,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTraderOfferField *p)
     set_obj(obj, "MaxTradeID", &p->MaxTradeID);
     set_obj(obj, "MaxOrderMessageReference", &p->MaxOrderMessageReference);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSettlementInfoField *p)
+static void set_obj(Object obj, CThostFtdcSettlementInfoField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "SettlementID", &p->SettlementID);
@@ -686,7 +683,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSettlementInfoField *p)
     set_obj(obj, "AccountID", &p->AccountID);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInstrumentMarginRateAdjustField *p)
+static void set_obj(Object obj, CThostFtdcInstrumentMarginRateAdjustField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -699,7 +696,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInstrumentMarginRateAdjustFiel
     set_obj(obj, "ShortMarginRatioByVolume", &p->ShortMarginRatioByVolume);
     set_obj(obj, "IsRelative", &p->IsRelative);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeMarginRateField *p)
+static void set_obj(Object obj, CThostFtdcExchangeMarginRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
@@ -709,7 +706,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeMarginRateField *p)
     set_obj(obj, "ShortMarginRatioByMoney", &p->ShortMarginRatioByMoney);
     set_obj(obj, "ShortMarginRatioByVolume", &p->ShortMarginRatioByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeMarginRateAdjustField *p)
+static void set_obj(Object obj, CThostFtdcExchangeMarginRateAdjustField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
@@ -727,7 +724,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeMarginRateAdjustField 
     set_obj(obj, "NoShortMarginRatioByMoney", &p->NoShortMarginRatioByMoney);
     set_obj(obj, "NoShortMarginRatioByVolume", &p->NoShortMarginRatioByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeRateField *p)
+static void set_obj(Object obj, CThostFtdcExchangeRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "FromCurrencyID", &p->FromCurrencyID);
@@ -735,25 +732,25 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeRateField *p)
     set_obj(obj, "ToCurrencyID", &p->ToCurrencyID);
     set_obj(obj, "ExchangeRate", &p->ExchangeRate);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSettlementRefField *p)
+static void set_obj(Object obj, CThostFtdcSettlementRefField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "SettlementID", &p->SettlementID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCurrentTimeField *p)
+static void set_obj(Object obj, CThostFtdcCurrentTimeField *p)
 {
     set_obj(obj, "CurrDate", &p->CurrDate);
     set_obj(obj, "CurrTime", &p->CurrTime);
     set_obj(obj, "CurrMillisec", &p->CurrMillisec);
     set_obj(obj, "ActionDay", &p->ActionDay);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCommPhaseField *p)
+static void set_obj(Object obj, CThostFtdcCommPhaseField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "CommPhaseNo", &p->CommPhaseNo);
     set_obj(obj, "SystemID", &p->SystemID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcLoginInfoField *p)
+static void set_obj(Object obj, CThostFtdcLoginInfoField *p)
 {
     set_obj(obj, "FrontID", &p->FrontID);
     set_obj(obj, "SessionID", &p->SessionID);
@@ -778,27 +775,27 @@ static void set_obj(Local<Object>& obj, CThostFtdcLoginInfoField *p)
     set_obj(obj, "IsQryControl", &p->IsQryControl);
     set_obj(obj, "LoginRemark", &p->LoginRemark);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcLogoutAllField *p)
+static void set_obj(Object obj, CThostFtdcLogoutAllField *p)
 {
     set_obj(obj, "FrontID", &p->FrontID);
     set_obj(obj, "SessionID", &p->SessionID);
     set_obj(obj, "SystemName", &p->SystemName);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcFrontStatusField *p)
+static void set_obj(Object obj, CThostFtdcFrontStatusField *p)
 {
     set_obj(obj, "FrontID", &p->FrontID);
     set_obj(obj, "LastReportDate", &p->LastReportDate);
     set_obj(obj, "LastReportTime", &p->LastReportTime);
     set_obj(obj, "IsActive", &p->IsActive);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcUserPasswordUpdateField *p)
+static void set_obj(Object obj, CThostFtdcUserPasswordUpdateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "OldPassword", &p->OldPassword);
     set_obj(obj, "NewPassword", &p->NewPassword);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputOrderField *p)
+static void set_obj(Object obj, CThostFtdcInputOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -831,7 +828,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOrderField *p)
+static void set_obj(Object obj, CThostFtdcOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -897,7 +894,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeOrderField *p)
+static void set_obj(Object obj, CThostFtdcExchangeOrderField *p)
 {
     set_obj(obj, "OrderPriceType", &p->OrderPriceType);
     set_obj(obj, "Direction", &p->Direction);
@@ -945,7 +942,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeOrderInsertErrorField *p)
+static void set_obj(Object obj, CThostFtdcExchangeOrderInsertErrorField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
@@ -955,7 +952,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeOrderInsertErrorField 
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcInputOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -975,7 +972,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputOrderActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1007,7 +1004,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcOrderActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcExchangeOrderActionField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "OrderSysID", &p->OrderSysID);
@@ -1029,7 +1026,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeOrderActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeOrderActionErrorField *p)
+static void set_obj(Object obj, CThostFtdcExchangeOrderActionErrorField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "OrderSysID", &p->OrderSysID);
@@ -1040,7 +1037,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeOrderActionErrorField 
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeTradeField *p)
+static void set_obj(Object obj, CThostFtdcExchangeTradeField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TradeID", &p->TradeID);
@@ -1065,7 +1062,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeTradeField *p)
     set_obj(obj, "SequenceNo", &p->SequenceNo);
     set_obj(obj, "TradeSource", &p->TradeSource);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradeField *p)
+static void set_obj(Object obj, CThostFtdcTradeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1098,7 +1095,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTradeField *p)
     set_obj(obj, "BrokerOrderSeq", &p->BrokerOrderSeq);
     set_obj(obj, "TradeSource", &p->TradeSource);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcUserSessionField *p)
+static void set_obj(Object obj, CThostFtdcUserSessionField *p)
 {
     set_obj(obj, "FrontID", &p->FrontID);
     set_obj(obj, "SessionID", &p->SessionID);
@@ -1113,7 +1110,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcUserSessionField *p)
     set_obj(obj, "MacAddress", &p->MacAddress);
     set_obj(obj, "LoginRemark", &p->LoginRemark);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQueryMaxOrderVolumeField *p)
+static void set_obj(Object obj, CThostFtdcQueryMaxOrderVolumeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1123,14 +1120,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcQueryMaxOrderVolumeField *p)
     set_obj(obj, "HedgeFlag", &p->HedgeFlag);
     set_obj(obj, "MaxVolume", &p->MaxVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSettlementInfoConfirmField *p)
+static void set_obj(Object obj, CThostFtdcSettlementInfoConfirmField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ConfirmDate", &p->ConfirmDate);
     set_obj(obj, "ConfirmTime", &p->ConfirmTime);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncDepositField *p)
+static void set_obj(Object obj, CThostFtdcSyncDepositField *p)
 {
     set_obj(obj, "DepositSeqNo", &p->DepositSeqNo);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -1139,7 +1136,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncDepositField *p)
     set_obj(obj, "IsForce", &p->IsForce);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncFundMortgageField *p)
+static void set_obj(Object obj, CThostFtdcSyncFundMortgageField *p)
 {
     set_obj(obj, "MortgageSeqNo", &p->MortgageSeqNo);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -1148,11 +1145,11 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncFundMortgageField *p)
     set_obj(obj, "MortgageAmount", &p->MortgageAmount);
     set_obj(obj, "ToCurrencyID", &p->ToCurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerSyncField *p)
+static void set_obj(Object obj, CThostFtdcBrokerSyncField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncingInvestorField *p)
+static void set_obj(Object obj, CThostFtdcSyncingInvestorField *p)
 {
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -1168,7 +1165,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncingInvestorField *p)
     set_obj(obj, "CommModelID", &p->CommModelID);
     set_obj(obj, "MarginModelID", &p->MarginModelID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncingTradingCodeField *p)
+static void set_obj(Object obj, CThostFtdcSyncingTradingCodeField *p)
 {
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -1177,13 +1174,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncingTradingCodeField *p)
     set_obj(obj, "IsActive", &p->IsActive);
     set_obj(obj, "ClientIDType", &p->ClientIDType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncingInvestorGroupField *p)
+static void set_obj(Object obj, CThostFtdcSyncingInvestorGroupField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorGroupID", &p->InvestorGroupID);
     set_obj(obj, "InvestorGroupName", &p->InvestorGroupName);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncingTradingAccountField *p)
+static void set_obj(Object obj, CThostFtdcSyncingTradingAccountField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "AccountID", &p->AccountID);
@@ -1232,7 +1229,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncingTradingAccountField *p)
     set_obj(obj, "SpecProductPositionProfitByAlg", &p->SpecProductPositionProfitByAlg);
     set_obj(obj, "SpecProductExchangeMargin", &p->SpecProductExchangeMargin);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncingInvestorPositionField *p)
+static void set_obj(Object obj, CThostFtdcSyncingInvestorPositionField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -1278,7 +1275,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncingInvestorPositionField *
     set_obj(obj, "StrikeFrozenAmount", &p->StrikeFrozenAmount);
     set_obj(obj, "AbandonFrozen", &p->AbandonFrozen);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncingInstrumentMarginRateField *p)
+static void set_obj(Object obj, CThostFtdcSyncingInstrumentMarginRateField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -1291,7 +1288,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncingInstrumentMarginRateFie
     set_obj(obj, "ShortMarginRatioByVolume", &p->ShortMarginRatioByVolume);
     set_obj(obj, "IsRelative", &p->IsRelative);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncingInstrumentCommissionRateField *p)
+static void set_obj(Object obj, CThostFtdcSyncingInstrumentCommissionRateField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -1304,7 +1301,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncingInstrumentCommissionRat
     set_obj(obj, "CloseTodayRatioByMoney", &p->CloseTodayRatioByMoney);
     set_obj(obj, "CloseTodayRatioByVolume", &p->CloseTodayRatioByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncingInstrumentTradingRightField *p)
+static void set_obj(Object obj, CThostFtdcSyncingInstrumentTradingRightField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -1312,7 +1309,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSyncingInstrumentTradingRightF
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "TradingRight", &p->TradingRight);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryOrderField *p)
+static void set_obj(Object obj, CThostFtdcQryOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1322,7 +1319,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryOrderField *p)
     set_obj(obj, "InsertTimeStart", &p->InsertTimeStart);
     set_obj(obj, "InsertTimeEnd", &p->InsertTimeEnd);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryTradeField *p)
+static void set_obj(Object obj, CThostFtdcQryTradeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1332,24 +1329,24 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryTradeField *p)
     set_obj(obj, "TradeTimeStart", &p->TradeTimeStart);
     set_obj(obj, "TradeTimeEnd", &p->TradeTimeEnd);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInvestorPositionField *p)
+static void set_obj(Object obj, CThostFtdcQryInvestorPositionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryTradingAccountField *p)
+static void set_obj(Object obj, CThostFtdcQryTradingAccountField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInvestorField *p)
+static void set_obj(Object obj, CThostFtdcQryInvestorField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryTradingCodeField *p)
+static void set_obj(Object obj, CThostFtdcQryTradingCodeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1357,61 +1354,61 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryTradingCodeField *p)
     set_obj(obj, "ClientID", &p->ClientID);
     set_obj(obj, "ClientIDType", &p->ClientIDType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInvestorGroupField *p)
+static void set_obj(Object obj, CThostFtdcQryInvestorGroupField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInstrumentMarginRateField *p)
+static void set_obj(Object obj, CThostFtdcQryInstrumentMarginRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "HedgeFlag", &p->HedgeFlag);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInstrumentCommissionRateField *p)
+static void set_obj(Object obj, CThostFtdcQryInstrumentCommissionRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInstrumentTradingRightField *p)
+static void set_obj(Object obj, CThostFtdcQryInstrumentTradingRightField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryBrokerField *p)
+static void set_obj(Object obj, CThostFtdcQryBrokerField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryTraderField *p)
+static void set_obj(Object obj, CThostFtdcQryTraderField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQrySuperUserFunctionField *p)
+static void set_obj(Object obj, CThostFtdcQrySuperUserFunctionField *p)
 {
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryUserSessionField *p)
+static void set_obj(Object obj, CThostFtdcQryUserSessionField *p)
 {
     set_obj(obj, "FrontID", &p->FrontID);
     set_obj(obj, "SessionID", &p->SessionID);
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryPartBrokerField *p)
+static void set_obj(Object obj, CThostFtdcQryPartBrokerField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryFrontStatusField *p)
+static void set_obj(Object obj, CThostFtdcQryFrontStatusField *p)
 {
     set_obj(obj, "FrontID", &p->FrontID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeOrderField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeOrderField *p)
 {
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "ClientID", &p->ClientID);
@@ -1419,94 +1416,94 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeOrderField *p)
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcQryOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeOrderActionField *p)
 {
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "ClientID", &p->ClientID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQrySuperUserField *p)
+static void set_obj(Object obj, CThostFtdcQrySuperUserField *p)
 {
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryProductField *p)
+static void set_obj(Object obj, CThostFtdcQryProductField *p)
 {
     set_obj(obj, "ProductID", &p->ProductID);
     set_obj(obj, "ProductClass", &p->ProductClass);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInstrumentField *p)
+static void set_obj(Object obj, CThostFtdcQryInstrumentField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ExchangeInstID", &p->ExchangeInstID);
     set_obj(obj, "ProductID", &p->ProductID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryDepthMarketDataField *p)
+static void set_obj(Object obj, CThostFtdcQryDepthMarketDataField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryBrokerUserField *p)
+static void set_obj(Object obj, CThostFtdcQryBrokerUserField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryBrokerUserFunctionField *p)
+static void set_obj(Object obj, CThostFtdcQryBrokerUserFunctionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryTraderOfferField *p)
+static void set_obj(Object obj, CThostFtdcQryTraderOfferField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQrySyncDepositField *p)
+static void set_obj(Object obj, CThostFtdcQrySyncDepositField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "DepositSeqNo", &p->DepositSeqNo);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQrySettlementInfoField *p)
+static void set_obj(Object obj, CThostFtdcQrySettlementInfoField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "TradingDay", &p->TradingDay);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeMarginRateField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeMarginRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "HedgeFlag", &p->HedgeFlag);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeMarginRateAdjustField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeMarginRateAdjustField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "HedgeFlag", &p->HedgeFlag);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeRateField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "FromCurrencyID", &p->FromCurrencyID);
     set_obj(obj, "ToCurrencyID", &p->ToCurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQrySyncFundMortgageField *p)
+static void set_obj(Object obj, CThostFtdcQrySyncFundMortgageField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "MortgageSeqNo", &p->MortgageSeqNo);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryHisOrderField *p)
+static void set_obj(Object obj, CThostFtdcQryHisOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1518,7 +1515,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryHisOrderField *p)
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "SettlementID", &p->SettlementID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrMiniMarginField *p)
+static void set_obj(Object obj, CThostFtdcOptionInstrMiniMarginField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -1528,7 +1525,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrMiniMarginField *p)
     set_obj(obj, "ValueMethod", &p->ValueMethod);
     set_obj(obj, "IsRelative", &p->IsRelative);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrMarginAdjustField *p)
+static void set_obj(Object obj, CThostFtdcOptionInstrMarginAdjustField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -1544,7 +1541,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrMarginAdjustField *
     set_obj(obj, "MShortMarginRatioByMoney", &p->MShortMarginRatioByMoney);
     set_obj(obj, "MShortMarginRatioByVolume", &p->MShortMarginRatioByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrCommRateField *p)
+static void set_obj(Object obj, CThostFtdcOptionInstrCommRateField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -1559,7 +1556,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrCommRateField *p)
     set_obj(obj, "StrikeRatioByMoney", &p->StrikeRatioByMoney);
     set_obj(obj, "StrikeRatioByVolume", &p->StrikeRatioByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrTradeCostField *p)
+static void set_obj(Object obj, CThostFtdcOptionInstrTradeCostField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1571,7 +1568,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrTradeCostField *p)
     set_obj(obj, "ExchFixedMargin", &p->ExchFixedMargin);
     set_obj(obj, "ExchMiniMargin", &p->ExchMiniMargin);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryOptionInstrTradeCostField *p)
+static void set_obj(Object obj, CThostFtdcQryOptionInstrTradeCostField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1580,19 +1577,19 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryOptionInstrTradeCostField *
     set_obj(obj, "InputPrice", &p->InputPrice);
     set_obj(obj, "UnderlyingPrice", &p->UnderlyingPrice);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryOptionInstrCommRateField *p)
+static void set_obj(Object obj, CThostFtdcQryOptionInstrCommRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcIndexPriceField *p)
+static void set_obj(Object obj, CThostFtdcIndexPriceField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "ClosePrice", &p->ClosePrice);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputExecOrderField *p)
+static void set_obj(Object obj, CThostFtdcInputExecOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1616,7 +1613,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputExecOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputExecOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcInputExecOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1634,7 +1631,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputExecOrderActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExecOrderField *p)
+static void set_obj(Object obj, CThostFtdcExecOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1681,7 +1678,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExecOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExecOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcExecOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1712,7 +1709,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExecOrderActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExecOrderField *p)
+static void set_obj(Object obj, CThostFtdcQryExecOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1722,7 +1719,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryExecOrderField *p)
     set_obj(obj, "InsertTimeStart", &p->InsertTimeStart);
     set_obj(obj, "InsertTimeEnd", &p->InsertTimeEnd);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeExecOrderField *p)
+static void set_obj(Object obj, CThostFtdcExchangeExecOrderField *p)
 {
     set_obj(obj, "Volume", &p->Volume);
     set_obj(obj, "RequestID", &p->RequestID);
@@ -1755,7 +1752,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeExecOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeExecOrderField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeExecOrderField *p)
 {
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "ClientID", &p->ClientID);
@@ -1763,13 +1760,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeExecOrderField *p)
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExecOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcQryExecOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeExecOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcExchangeExecOrderActionField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ExecOrderSysID", &p->ExecOrderSysID);
@@ -1790,14 +1787,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeExecOrderActionField *
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeExecOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeExecOrderActionField *p)
 {
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "ClientID", &p->ClientID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcErrExecOrderField *p)
+static void set_obj(Object obj, CThostFtdcErrExecOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1823,12 +1820,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcErrExecOrderField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryErrExecOrderField *p)
+static void set_obj(Object obj, CThostFtdcQryErrExecOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcErrExecOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcErrExecOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1848,12 +1845,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcErrExecOrderActionField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryErrExecOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcQryErrExecOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrTradingRightField *p)
+static void set_obj(Object obj, CThostFtdcOptionInstrTradingRightField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -1862,14 +1859,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrTradingRightField *
     set_obj(obj, "Direction", &p->Direction);
     set_obj(obj, "TradingRight", &p->TradingRight);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryOptionInstrTradingRightField *p)
+static void set_obj(Object obj, CThostFtdcQryOptionInstrTradingRightField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "Direction", &p->Direction);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputForQuoteField *p)
+static void set_obj(Object obj, CThostFtdcInputForQuoteField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1881,7 +1878,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputForQuoteField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcForQuoteField *p)
+static void set_obj(Object obj, CThostFtdcForQuoteField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1907,7 +1904,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcForQuoteField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryForQuoteField *p)
+static void set_obj(Object obj, CThostFtdcQryForQuoteField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1916,7 +1913,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryForQuoteField *p)
     set_obj(obj, "InsertTimeStart", &p->InsertTimeStart);
     set_obj(obj, "InsertTimeEnd", &p->InsertTimeEnd);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeForQuoteField *p)
+static void set_obj(Object obj, CThostFtdcExchangeForQuoteField *p)
 {
     set_obj(obj, "ForQuoteLocalID", &p->ForQuoteLocalID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
@@ -1931,7 +1928,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeForQuoteField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeForQuoteField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeForQuoteField *p)
 {
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "ClientID", &p->ClientID);
@@ -1939,7 +1936,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeForQuoteField *p)
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputQuoteField *p)
+static void set_obj(Object obj, CThostFtdcInputQuoteField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1965,7 +1962,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputQuoteField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputQuoteActionField *p)
+static void set_obj(Object obj, CThostFtdcInputQuoteActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -1984,7 +1981,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputQuoteActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQuoteField *p)
+static void set_obj(Object obj, CThostFtdcQuoteField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2037,7 +2034,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQuoteField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQuoteActionField *p)
+static void set_obj(Object obj, CThostFtdcQuoteActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2067,7 +2064,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQuoteActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryQuoteField *p)
+static void set_obj(Object obj, CThostFtdcQryQuoteField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2077,7 +2074,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryQuoteField *p)
     set_obj(obj, "InsertTimeStart", &p->InsertTimeStart);
     set_obj(obj, "InsertTimeEnd", &p->InsertTimeEnd);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeQuoteField *p)
+static void set_obj(Object obj, CThostFtdcExchangeQuoteField *p)
 {
     set_obj(obj, "AskPrice", &p->AskPrice);
     set_obj(obj, "BidPrice", &p->BidPrice);
@@ -2114,7 +2111,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeQuoteField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeQuoteField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeQuoteField *p)
 {
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "ClientID", &p->ClientID);
@@ -2122,13 +2119,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeQuoteField *p)
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryQuoteActionField *p)
+static void set_obj(Object obj, CThostFtdcQryQuoteActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeQuoteActionField *p)
+static void set_obj(Object obj, CThostFtdcExchangeQuoteActionField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "QuoteSysID", &p->QuoteSysID);
@@ -2147,14 +2144,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeQuoteActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeQuoteActionField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeQuoteActionField *p)
 {
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "ClientID", &p->ClientID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrDeltaField *p)
+static void set_obj(Object obj, CThostFtdcOptionInstrDeltaField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -2162,7 +2159,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcOptionInstrDeltaField *p)
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "Delta", &p->Delta);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcForQuoteRspField *p)
+static void set_obj(Object obj, CThostFtdcForQuoteRspField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
@@ -2171,7 +2168,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcForQuoteRspField *p)
     set_obj(obj, "ActionDay", &p->ActionDay);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcStrikeOffsetField *p)
+static void set_obj(Object obj, CThostFtdcStrikeOffsetField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -2180,13 +2177,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcStrikeOffsetField *p)
     set_obj(obj, "Offset", &p->Offset);
     set_obj(obj, "OffsetType", &p->OffsetType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryStrikeOffsetField *p)
+static void set_obj(Object obj, CThostFtdcQryStrikeOffsetField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputBatchOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcInputBatchOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2200,7 +2197,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputBatchOrderActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBatchOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcBatchOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2224,7 +2221,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcBatchOrderActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeBatchOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcExchangeBatchOrderActionField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ActionDate", &p->ActionDate);
@@ -2240,24 +2237,24 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeBatchOrderActionField 
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryBatchOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcQryBatchOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCombInstrumentGuardField *p)
+static void set_obj(Object obj, CThostFtdcCombInstrumentGuardField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "GuarantRatio", &p->GuarantRatio);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryCombInstrumentGuardField *p)
+static void set_obj(Object obj, CThostFtdcQryCombInstrumentGuardField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInputCombActionField *p)
+static void set_obj(Object obj, CThostFtdcInputCombActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2272,7 +2269,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInputCombActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCombActionField *p)
+static void set_obj(Object obj, CThostFtdcCombActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2302,14 +2299,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcCombActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryCombActionField *p)
+static void set_obj(Object obj, CThostFtdcQryCombActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeCombActionField *p)
+static void set_obj(Object obj, CThostFtdcExchangeCombActionField *p)
 {
     set_obj(obj, "Direction", &p->Direction);
     set_obj(obj, "Volume", &p->Volume);
@@ -2330,7 +2327,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcExchangeCombActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeCombActionField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeCombActionField *p)
 {
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "ClientID", &p->ClientID);
@@ -2338,23 +2335,23 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeCombActionField *p)
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcProductExchRateField *p)
+static void set_obj(Object obj, CThostFtdcProductExchRateField *p)
 {
     set_obj(obj, "ProductID", &p->ProductID);
     set_obj(obj, "QuoteCurrencyID", &p->QuoteCurrencyID);
     set_obj(obj, "ExchangeRate", &p->ExchangeRate);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryProductExchRateField *p)
+static void set_obj(Object obj, CThostFtdcQryProductExchRateField *p)
 {
     set_obj(obj, "ProductID", &p->ProductID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryForQuoteParamField *p)
+static void set_obj(Object obj, CThostFtdcQryForQuoteParamField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcForQuoteParamField *p)
+static void set_obj(Object obj, CThostFtdcForQuoteParamField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
@@ -2362,7 +2359,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcForQuoteParamField *p)
     set_obj(obj, "LastPrice", &p->LastPrice);
     set_obj(obj, "PriceInterval", &p->PriceInterval);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMMOptionInstrCommRateField *p)
+static void set_obj(Object obj, CThostFtdcMMOptionInstrCommRateField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -2377,13 +2374,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcMMOptionInstrCommRateField *p)
     set_obj(obj, "StrikeRatioByMoney", &p->StrikeRatioByMoney);
     set_obj(obj, "StrikeRatioByVolume", &p->StrikeRatioByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryMMOptionInstrCommRateField *p)
+static void set_obj(Object obj, CThostFtdcQryMMOptionInstrCommRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMMInstrumentCommissionRateField *p)
+static void set_obj(Object obj, CThostFtdcMMInstrumentCommissionRateField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -2396,13 +2393,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcMMInstrumentCommissionRateFiel
     set_obj(obj, "CloseTodayRatioByMoney", &p->CloseTodayRatioByMoney);
     set_obj(obj, "CloseTodayRatioByVolume", &p->CloseTodayRatioByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryMMInstrumentCommissionRateField *p)
+static void set_obj(Object obj, CThostFtdcQryMMInstrumentCommissionRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInstrumentOrderCommRateField *p)
+static void set_obj(Object obj, CThostFtdcInstrumentOrderCommRateField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -2412,13 +2409,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcInstrumentOrderCommRateField *
     set_obj(obj, "OrderCommByVolume", &p->OrderCommByVolume);
     set_obj(obj, "OrderActionCommByVolume", &p->OrderActionCommByVolume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInstrumentOrderCommRateField *p)
+static void set_obj(Object obj, CThostFtdcQryInstrumentOrderCommRateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataField *p)
+static void set_obj(Object obj, CThostFtdcMarketDataField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
@@ -2444,7 +2441,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcMarketDataField *p)
     set_obj(obj, "UpdateMillisec", &p->UpdateMillisec);
     set_obj(obj, "ActionDay", &p->ActionDay);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataBaseField *p)
+static void set_obj(Object obj, CThostFtdcMarketDataBaseField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "PreSettlementPrice", &p->PreSettlementPrice);
@@ -2452,7 +2449,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcMarketDataBaseField *p)
     set_obj(obj, "PreOpenInterest", &p->PreOpenInterest);
     set_obj(obj, "PreDelta", &p->PreDelta);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataStaticField *p)
+static void set_obj(Object obj, CThostFtdcMarketDataStaticField *p)
 {
     set_obj(obj, "OpenPrice", &p->OpenPrice);
     set_obj(obj, "HighestPrice", &p->HighestPrice);
@@ -2463,64 +2460,64 @@ static void set_obj(Local<Object>& obj, CThostFtdcMarketDataStaticField *p)
     set_obj(obj, "SettlementPrice", &p->SettlementPrice);
     set_obj(obj, "CurrDelta", &p->CurrDelta);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataLastMatchField *p)
+static void set_obj(Object obj, CThostFtdcMarketDataLastMatchField *p)
 {
     set_obj(obj, "LastPrice", &p->LastPrice);
     set_obj(obj, "Volume", &p->Volume);
     set_obj(obj, "Turnover", &p->Turnover);
     set_obj(obj, "OpenInterest", &p->OpenInterest);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataBestPriceField *p)
+static void set_obj(Object obj, CThostFtdcMarketDataBestPriceField *p)
 {
     set_obj(obj, "BidPrice1", &p->BidPrice1);
     set_obj(obj, "BidVolume1", &p->BidVolume1);
     set_obj(obj, "AskPrice1", &p->AskPrice1);
     set_obj(obj, "AskVolume1", &p->AskVolume1);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataBid23Field *p)
+static void set_obj(Object obj, CThostFtdcMarketDataBid23Field *p)
 {
     set_obj(obj, "BidPrice2", &p->BidPrice2);
     set_obj(obj, "BidVolume2", &p->BidVolume2);
     set_obj(obj, "BidPrice3", &p->BidPrice3);
     set_obj(obj, "BidVolume3", &p->BidVolume3);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataAsk23Field *p)
+static void set_obj(Object obj, CThostFtdcMarketDataAsk23Field *p)
 {
     set_obj(obj, "AskPrice2", &p->AskPrice2);
     set_obj(obj, "AskVolume2", &p->AskVolume2);
     set_obj(obj, "AskPrice3", &p->AskPrice3);
     set_obj(obj, "AskVolume3", &p->AskVolume3);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataBid45Field *p)
+static void set_obj(Object obj, CThostFtdcMarketDataBid45Field *p)
 {
     set_obj(obj, "BidPrice4", &p->BidPrice4);
     set_obj(obj, "BidVolume4", &p->BidVolume4);
     set_obj(obj, "BidPrice5", &p->BidPrice5);
     set_obj(obj, "BidVolume5", &p->BidVolume5);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataAsk45Field *p)
+static void set_obj(Object obj, CThostFtdcMarketDataAsk45Field *p)
 {
     set_obj(obj, "AskPrice4", &p->AskPrice4);
     set_obj(obj, "AskVolume4", &p->AskVolume4);
     set_obj(obj, "AskPrice5", &p->AskPrice5);
     set_obj(obj, "AskVolume5", &p->AskVolume5);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataUpdateTimeField *p)
+static void set_obj(Object obj, CThostFtdcMarketDataUpdateTimeField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "UpdateTime", &p->UpdateTime);
     set_obj(obj, "UpdateMillisec", &p->UpdateMillisec);
     set_obj(obj, "ActionDay", &p->ActionDay);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataExchangeField *p)
+static void set_obj(Object obj, CThostFtdcMarketDataExchangeField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSpecificInstrumentField *p)
+static void set_obj(Object obj, CThostFtdcSpecificInstrumentField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInstrumentStatusField *p)
+static void set_obj(Object obj, CThostFtdcInstrumentStatusField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ExchangeInstID", &p->ExchangeInstID);
@@ -2531,19 +2528,19 @@ static void set_obj(Local<Object>& obj, CThostFtdcInstrumentStatusField *p)
     set_obj(obj, "EnterTime", &p->EnterTime);
     set_obj(obj, "EnterReason", &p->EnterReason);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInstrumentStatusField *p)
+static void set_obj(Object obj, CThostFtdcQryInstrumentStatusField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ExchangeInstID", &p->ExchangeInstID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInvestorAccountField *p)
+static void set_obj(Object obj, CThostFtdcInvestorAccountField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "AccountID", &p->AccountID);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcPositionProfitAlgorithmField *p)
+static void set_obj(Object obj, CThostFtdcPositionProfitAlgorithmField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "AccountID", &p->AccountID);
@@ -2551,32 +2548,32 @@ static void set_obj(Local<Object>& obj, CThostFtdcPositionProfitAlgorithmField *
     set_obj(obj, "Memo", &p->Memo);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcDiscountField *p)
+static void set_obj(Object obj, CThostFtdcDiscountField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "Discount", &p->Discount);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryTransferBankField *p)
+static void set_obj(Object obj, CThostFtdcQryTransferBankField *p)
 {
     set_obj(obj, "BankID", &p->BankID);
     set_obj(obj, "BankBrchID", &p->BankBrchID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferBankField *p)
+static void set_obj(Object obj, CThostFtdcTransferBankField *p)
 {
     set_obj(obj, "BankID", &p->BankID);
     set_obj(obj, "BankBrchID", &p->BankBrchID);
     set_obj(obj, "BankName", &p->BankName);
     set_obj(obj, "IsActive", &p->IsActive);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInvestorPositionDetailField *p)
+static void set_obj(Object obj, CThostFtdcQryInvestorPositionDetailField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInvestorPositionDetailField *p)
+static void set_obj(Object obj, CThostFtdcInvestorPositionDetailField *p)
 {
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -2605,14 +2602,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcInvestorPositionDetailField *p
     set_obj(obj, "CloseVolume", &p->CloseVolume);
     set_obj(obj, "CloseAmount", &p->CloseAmount);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradingAccountPasswordField *p)
+static void set_obj(Object obj, CThostFtdcTradingAccountPasswordField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "AccountID", &p->AccountID);
     set_obj(obj, "Password", &p->Password);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMDTraderOfferField *p)
+static void set_obj(Object obj, CThostFtdcMDTraderOfferField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TraderID", &p->TraderID);
@@ -2634,39 +2631,39 @@ static void set_obj(Local<Object>& obj, CThostFtdcMDTraderOfferField *p)
     set_obj(obj, "MaxTradeID", &p->MaxTradeID);
     set_obj(obj, "MaxOrderMessageReference", &p->MaxOrderMessageReference);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryMDTraderOfferField *p)
+static void set_obj(Object obj, CThostFtdcQryMDTraderOfferField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
     set_obj(obj, "TraderID", &p->TraderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryNoticeField *p)
+static void set_obj(Object obj, CThostFtdcQryNoticeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcNoticeField *p)
+static void set_obj(Object obj, CThostFtdcNoticeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "Content", &p->Content);
     set_obj(obj, "SequenceLabel", &p->SequenceLabel);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcUserRightField *p)
+static void set_obj(Object obj, CThostFtdcUserRightField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "UserRightType", &p->UserRightType);
     set_obj(obj, "IsForbidden", &p->IsForbidden);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQrySettlementInfoConfirmField *p)
+static void set_obj(Object obj, CThostFtdcQrySettlementInfoConfirmField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcLoadSettlementInfoField *p)
+static void set_obj(Object obj, CThostFtdcLoadSettlementInfoField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerWithdrawAlgorithmField *p)
+static void set_obj(Object obj, CThostFtdcBrokerWithdrawAlgorithmField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "WithdrawAlgorithm", &p->WithdrawAlgorithm);
@@ -2679,14 +2676,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcBrokerWithdrawAlgorithmField *
     set_obj(obj, "FundMortgageRatio", &p->FundMortgageRatio);
     set_obj(obj, "BalanceAlgorithm", &p->BalanceAlgorithm);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradingAccountPasswordUpdateV1Field *p)
+static void set_obj(Object obj, CThostFtdcTradingAccountPasswordUpdateV1Field *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "OldPassword", &p->OldPassword);
     set_obj(obj, "NewPassword", &p->NewPassword);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradingAccountPasswordUpdateField *p)
+static void set_obj(Object obj, CThostFtdcTradingAccountPasswordUpdateField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "AccountID", &p->AccountID);
@@ -2694,17 +2691,17 @@ static void set_obj(Local<Object>& obj, CThostFtdcTradingAccountPasswordUpdateFi
     set_obj(obj, "NewPassword", &p->NewPassword);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryCombinationLegField *p)
+static void set_obj(Object obj, CThostFtdcQryCombinationLegField *p)
 {
     set_obj(obj, "CombInstrumentID", &p->CombInstrumentID);
     set_obj(obj, "LegID", &p->LegID);
     set_obj(obj, "LegInstrumentID", &p->LegInstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQrySyncStatusField *p)
+static void set_obj(Object obj, CThostFtdcQrySyncStatusField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCombinationLegField *p)
+static void set_obj(Object obj, CThostFtdcCombinationLegField *p)
 {
     set_obj(obj, "CombInstrumentID", &p->CombInstrumentID);
     set_obj(obj, "LegID", &p->LegID);
@@ -2713,17 +2710,17 @@ static void set_obj(Local<Object>& obj, CThostFtdcCombinationLegField *p)
     set_obj(obj, "LegMultiple", &p->LegMultiple);
     set_obj(obj, "ImplyLevel", &p->ImplyLevel);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSyncStatusField *p)
+static void set_obj(Object obj, CThostFtdcSyncStatusField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "DataSyncStatus", &p->DataSyncStatus);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryLinkManField *p)
+static void set_obj(Object obj, CThostFtdcQryLinkManField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcLinkManField *p)
+static void set_obj(Object obj, CThostFtdcLinkManField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2738,13 +2735,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcLinkManField *p)
     set_obj(obj, "UOAZipCode", &p->UOAZipCode);
     set_obj(obj, "PersonFullName", &p->PersonFullName);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryBrokerUserEventField *p)
+static void set_obj(Object obj, CThostFtdcQryBrokerUserEventField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "UserEventType", &p->UserEventType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserEventField *p)
+static void set_obj(Object obj, CThostFtdcBrokerUserEventField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -2756,20 +2753,20 @@ static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserEventField *p)
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryContractBankField *p)
+static void set_obj(Object obj, CThostFtdcQryContractBankField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "BankID", &p->BankID);
     set_obj(obj, "BankBrchID", &p->BankBrchID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcContractBankField *p)
+static void set_obj(Object obj, CThostFtdcContractBankField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "BankID", &p->BankID);
     set_obj(obj, "BankBrchID", &p->BankBrchID);
     set_obj(obj, "BankName", &p->BankName);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInvestorPositionCombineDetailField *p)
+static void set_obj(Object obj, CThostFtdcInvestorPositionCombineDetailField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "OpenDate", &p->OpenDate);
@@ -2792,7 +2789,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcInvestorPositionCombineDetailF
     set_obj(obj, "CombInstrumentID", &p->CombInstrumentID);
     set_obj(obj, "TradeGroupID", &p->TradeGroupID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcParkedOrderField *p)
+static void set_obj(Object obj, CThostFtdcParkedOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2830,7 +2827,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcParkedOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcParkedOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcParkedOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2855,33 +2852,33 @@ static void set_obj(Local<Object>& obj, CThostFtdcParkedOrderActionField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryParkedOrderField *p)
+static void set_obj(Object obj, CThostFtdcQryParkedOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryParkedOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcQryParkedOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRemoveParkedOrderField *p)
+static void set_obj(Object obj, CThostFtdcRemoveParkedOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ParkedOrderID", &p->ParkedOrderID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRemoveParkedOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcRemoveParkedOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ParkedOrderActionID", &p->ParkedOrderActionID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInvestorWithdrawAlgorithmField *p)
+static void set_obj(Object obj, CThostFtdcInvestorWithdrawAlgorithmField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -2890,23 +2887,23 @@ static void set_obj(Local<Object>& obj, CThostFtdcInvestorWithdrawAlgorithmField
     set_obj(obj, "CurrencyID", &p->CurrencyID);
     set_obj(obj, "FundMortgageRatio", &p->FundMortgageRatio);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInvestorPositionCombineDetailField *p)
+static void set_obj(Object obj, CThostFtdcQryInvestorPositionCombineDetailField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "CombInstrumentID", &p->CombInstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarketDataAveragePriceField *p)
+static void set_obj(Object obj, CThostFtdcMarketDataAveragePriceField *p)
 {
     set_obj(obj, "AveragePrice", &p->AveragePrice);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcVerifyInvestorPasswordField *p)
+static void set_obj(Object obj, CThostFtdcVerifyInvestorPasswordField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "Password", &p->Password);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcUserIPField *p)
+static void set_obj(Object obj, CThostFtdcUserIPField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -2914,7 +2911,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcUserIPField *p)
     set_obj(obj, "IPMask", &p->IPMask);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradingNoticeInfoField *p)
+static void set_obj(Object obj, CThostFtdcTradingNoticeInfoField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2923,7 +2920,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcTradingNoticeInfoField *p)
     set_obj(obj, "SequenceSeries", &p->SequenceSeries);
     set_obj(obj, "SequenceNo", &p->SequenceNo);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradingNoticeField *p)
+static void set_obj(Object obj, CThostFtdcTradingNoticeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorRange", &p->InvestorRange);
@@ -2934,17 +2931,17 @@ static void set_obj(Local<Object>& obj, CThostFtdcTradingNoticeField *p)
     set_obj(obj, "SequenceNo", &p->SequenceNo);
     set_obj(obj, "FieldContent", &p->FieldContent);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryTradingNoticeField *p)
+static void set_obj(Object obj, CThostFtdcQryTradingNoticeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryErrOrderField *p)
+static void set_obj(Object obj, CThostFtdcQryErrOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcErrOrderField *p)
+static void set_obj(Object obj, CThostFtdcErrOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -2979,7 +2976,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcErrOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcErrorConditionalOrderField *p)
+static void set_obj(Object obj, CThostFtdcErrorConditionalOrderField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -3047,12 +3044,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcErrorConditionalOrderField *p)
     set_obj(obj, "IPAddress", &p->IPAddress);
     set_obj(obj, "MacAddress", &p->MacAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryErrOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcQryErrOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcErrOrderActionField *p)
+static void set_obj(Object obj, CThostFtdcErrOrderActionField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -3086,17 +3083,17 @@ static void set_obj(Local<Object>& obj, CThostFtdcErrOrderActionField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryExchangeSequenceField *p)
+static void set_obj(Object obj, CThostFtdcQryExchangeSequenceField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcExchangeSequenceField *p)
+static void set_obj(Object obj, CThostFtdcExchangeSequenceField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "SequenceNo", &p->SequenceNo);
     set_obj(obj, "MarketStatus", &p->MarketStatus);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQueryMaxOrderVolumeWithPriceField *p)
+static void set_obj(Object obj, CThostFtdcQueryMaxOrderVolumeWithPriceField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -3107,13 +3104,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcQueryMaxOrderVolumeWithPriceFi
     set_obj(obj, "MaxVolume", &p->MaxVolume);
     set_obj(obj, "Price", &p->Price);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryBrokerTradingParamsField *p)
+static void set_obj(Object obj, CThostFtdcQryBrokerTradingParamsField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerTradingParamsField *p)
+static void set_obj(Object obj, CThostFtdcBrokerTradingParamsField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -3123,13 +3120,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcBrokerTradingParamsField *p)
     set_obj(obj, "CurrencyID", &p->CurrencyID);
     set_obj(obj, "OptionRoyaltyPriceType", &p->OptionRoyaltyPriceType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryBrokerTradingAlgosField *p)
+static void set_obj(Object obj, CThostFtdcQryBrokerTradingAlgosField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerTradingAlgosField *p)
+static void set_obj(Object obj, CThostFtdcBrokerTradingAlgosField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
@@ -3138,12 +3135,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcBrokerTradingAlgosField *p)
     set_obj(obj, "FindMarginRateAlgoID", &p->FindMarginRateAlgoID);
     set_obj(obj, "HandleTradingAccountAlgoID", &p->HandleTradingAccountAlgoID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQueryBrokerDepositField *p)
+static void set_obj(Object obj, CThostFtdcQueryBrokerDepositField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerDepositField *p)
+static void set_obj(Object obj, CThostFtdcBrokerDepositField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -3159,11 +3156,11 @@ static void set_obj(Local<Object>& obj, CThostFtdcBrokerDepositField *p)
     set_obj(obj, "Reserve", &p->Reserve);
     set_obj(obj, "FrozenMargin", &p->FrozenMargin);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryCFMMCBrokerKeyField *p)
+static void set_obj(Object obj, CThostFtdcQryCFMMCBrokerKeyField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCFMMCBrokerKeyField *p)
+static void set_obj(Object obj, CThostFtdcCFMMCBrokerKeyField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
@@ -3173,7 +3170,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcCFMMCBrokerKeyField *p)
     set_obj(obj, "CurrentKey", &p->CurrentKey);
     set_obj(obj, "KeyKind", &p->KeyKind);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCFMMCTradingAccountKeyField *p)
+static void set_obj(Object obj, CThostFtdcCFMMCTradingAccountKeyField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
@@ -3181,12 +3178,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcCFMMCTradingAccountKeyField *p
     set_obj(obj, "KeyID", &p->KeyID);
     set_obj(obj, "CurrentKey", &p->CurrentKey);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryCFMMCTradingAccountKeyField *p)
+static void set_obj(Object obj, CThostFtdcQryCFMMCTradingAccountKeyField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserOTPParamField *p)
+static void set_obj(Object obj, CThostFtdcBrokerUserOTPParamField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -3197,7 +3194,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserOTPParamField *p)
     set_obj(obj, "LastSuccess", &p->LastSuccess);
     set_obj(obj, "OTPType", &p->OTPType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcManualSyncBrokerUserOTPField *p)
+static void set_obj(Object obj, CThostFtdcManualSyncBrokerUserOTPField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -3205,29 +3202,29 @@ static void set_obj(Local<Object>& obj, CThostFtdcManualSyncBrokerUserOTPField *
     set_obj(obj, "FirstOTP", &p->FirstOTP);
     set_obj(obj, "SecondOTP", &p->SecondOTP);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCommRateModelField *p)
+static void set_obj(Object obj, CThostFtdcCommRateModelField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "CommModelID", &p->CommModelID);
     set_obj(obj, "CommModelName", &p->CommModelName);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryCommRateModelField *p)
+static void set_obj(Object obj, CThostFtdcQryCommRateModelField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "CommModelID", &p->CommModelID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMarginModelField *p)
+static void set_obj(Object obj, CThostFtdcMarginModelField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "MarginModelID", &p->MarginModelID);
     set_obj(obj, "MarginModelName", &p->MarginModelName);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryMarginModelField *p)
+static void set_obj(Object obj, CThostFtdcQryMarginModelField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "MarginModelID", &p->MarginModelID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcEWarrantOffsetField *p)
+static void set_obj(Object obj, CThostFtdcEWarrantOffsetField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -3238,21 +3235,21 @@ static void set_obj(Local<Object>& obj, CThostFtdcEWarrantOffsetField *p)
     set_obj(obj, "HedgeFlag", &p->HedgeFlag);
     set_obj(obj, "Volume", &p->Volume);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryEWarrantOffsetField *p)
+static void set_obj(Object obj, CThostFtdcQryEWarrantOffsetField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryInvestorProductGroupMarginField *p)
+static void set_obj(Object obj, CThostFtdcQryInvestorProductGroupMarginField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "ProductGroupID", &p->ProductGroupID);
     set_obj(obj, "HedgeFlag", &p->HedgeFlag);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcInvestorProductGroupMarginField *p)
+static void set_obj(Object obj, CThostFtdcInvestorProductGroupMarginField *p)
 {
     set_obj(obj, "ProductGroupID", &p->ProductGroupID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -3282,12 +3279,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcInvestorProductGroupMarginFiel
     set_obj(obj, "ShortExchOffsetAmount", &p->ShortExchOffsetAmount);
     set_obj(obj, "HedgeFlag", &p->HedgeFlag);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQueryCFMMCTradingAccountTokenField *p)
+static void set_obj(Object obj, CThostFtdcQueryCFMMCTradingAccountTokenField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCFMMCTradingAccountTokenField *p)
+static void set_obj(Object obj, CThostFtdcCFMMCTradingAccountTokenField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "ParticipantID", &p->ParticipantID);
@@ -3295,18 +3292,18 @@ static void set_obj(Local<Object>& obj, CThostFtdcCFMMCTradingAccountTokenField 
     set_obj(obj, "KeyID", &p->KeyID);
     set_obj(obj, "Token", &p->Token);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryProductGroupField *p)
+static void set_obj(Object obj, CThostFtdcQryProductGroupField *p)
 {
     set_obj(obj, "ProductID", &p->ProductID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcProductGroupField *p)
+static void set_obj(Object obj, CThostFtdcProductGroupField *p)
 {
     set_obj(obj, "ProductID", &p->ProductID);
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "ProductGroupID", &p->ProductGroupID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBulletinField *p)
+static void set_obj(Object obj, CThostFtdcBulletinField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "TradingDay", &p->TradingDay);
@@ -3321,7 +3318,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcBulletinField *p)
     set_obj(obj, "URLLink", &p->URLLink);
     set_obj(obj, "MarketID", &p->MarketID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryBulletinField *p)
+static void set_obj(Object obj, CThostFtdcQryBulletinField *p)
 {
     set_obj(obj, "ExchangeID", &p->ExchangeID);
     set_obj(obj, "BulletinID", &p->BulletinID);
@@ -3329,7 +3326,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryBulletinField *p)
     set_obj(obj, "NewsType", &p->NewsType);
     set_obj(obj, "NewsUrgency", &p->NewsUrgency);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqOpenAccountField *p)
+static void set_obj(Object obj, CThostFtdcReqOpenAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3376,7 +3373,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqOpenAccountField *p)
     set_obj(obj, "TID", &p->TID);
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqCancelAccountField *p)
+static void set_obj(Object obj, CThostFtdcReqCancelAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3423,7 +3420,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqCancelAccountField *p)
     set_obj(obj, "TID", &p->TID);
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqChangeAccountField *p)
+static void set_obj(Object obj, CThostFtdcReqChangeAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3466,7 +3463,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqChangeAccountField *p)
     set_obj(obj, "TID", &p->TID);
     set_obj(obj, "Digest", &p->Digest);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqTransferField *p)
+static void set_obj(Object obj, CThostFtdcReqTransferField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3512,7 +3509,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqTransferField *p)
     set_obj(obj, "TID", &p->TID);
     set_obj(obj, "TransferStatus", &p->TransferStatus);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspTransferField *p)
+static void set_obj(Object obj, CThostFtdcRspTransferField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3560,7 +3557,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspTransferField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqRepealField *p)
+static void set_obj(Object obj, CThostFtdcReqRepealField *p)
 {
     set_obj(obj, "RepealTimeInterval", &p->RepealTimeInterval);
     set_obj(obj, "RepealedTimes", &p->RepealedTimes);
@@ -3613,7 +3610,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqRepealField *p)
     set_obj(obj, "TID", &p->TID);
     set_obj(obj, "TransferStatus", &p->TransferStatus);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspRepealField *p)
+static void set_obj(Object obj, CThostFtdcRspRepealField *p)
 {
     set_obj(obj, "RepealTimeInterval", &p->RepealTimeInterval);
     set_obj(obj, "RepealedTimes", &p->RepealedTimes);
@@ -3668,7 +3665,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspRepealField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqQueryAccountField *p)
+static void set_obj(Object obj, CThostFtdcReqQueryAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3707,7 +3704,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqQueryAccountField *p)
     set_obj(obj, "RequestID", &p->RequestID);
     set_obj(obj, "TID", &p->TID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspQueryAccountField *p)
+static void set_obj(Object obj, CThostFtdcRspQueryAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3748,7 +3745,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspQueryAccountField *p)
     set_obj(obj, "BankUseAmount", &p->BankUseAmount);
     set_obj(obj, "BankFetchAmount", &p->BankFetchAmount);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcFutureSignIOField *p)
+static void set_obj(Object obj, CThostFtdcFutureSignIOField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3772,7 +3769,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcFutureSignIOField *p)
     set_obj(obj, "RequestID", &p->RequestID);
     set_obj(obj, "TID", &p->TID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspFutureSignInField *p)
+static void set_obj(Object obj, CThostFtdcRspFutureSignInField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3800,7 +3797,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspFutureSignInField *p)
     set_obj(obj, "PinKey", &p->PinKey);
     set_obj(obj, "MacKey", &p->MacKey);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqFutureSignOutField *p)
+static void set_obj(Object obj, CThostFtdcReqFutureSignOutField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3824,7 +3821,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqFutureSignOutField *p)
     set_obj(obj, "RequestID", &p->RequestID);
     set_obj(obj, "TID", &p->TID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspFutureSignOutField *p)
+static void set_obj(Object obj, CThostFtdcRspFutureSignOutField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3850,7 +3847,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspFutureSignOutField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqQueryTradeResultBySerialField *p)
+static void set_obj(Object obj, CThostFtdcReqQueryTradeResultBySerialField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3879,7 +3876,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqQueryTradeResultBySerialFie
     set_obj(obj, "TradeAmount", &p->TradeAmount);
     set_obj(obj, "Digest", &p->Digest);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspQueryTradeResultBySerialField *p)
+static void set_obj(Object obj, CThostFtdcRspQueryTradeResultBySerialField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3908,7 +3905,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspQueryTradeResultBySerialFie
     set_obj(obj, "TradeAmount", &p->TradeAmount);
     set_obj(obj, "Digest", &p->Digest);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqDayEndFileReadyField *p)
+static void set_obj(Object obj, CThostFtdcReqDayEndFileReadyField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3925,12 +3922,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqDayEndFileReadyField *p)
     set_obj(obj, "FileBusinessCode", &p->FileBusinessCode);
     set_obj(obj, "Digest", &p->Digest);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReturnResultField *p)
+static void set_obj(Object obj, CThostFtdcReturnResultField *p)
 {
     set_obj(obj, "ReturnCode", &p->ReturnCode);
     set_obj(obj, "DescrInfoForReturnCode", &p->DescrInfoForReturnCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcVerifyFuturePasswordField *p)
+static void set_obj(Object obj, CThostFtdcVerifyFuturePasswordField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -3952,14 +3949,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcVerifyFuturePasswordField *p)
     set_obj(obj, "TID", &p->TID);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcVerifyCustInfoField *p)
+static void set_obj(Object obj, CThostFtdcVerifyCustInfoField *p)
 {
     set_obj(obj, "CustomerName", &p->CustomerName);
     set_obj(obj, "IdCardType", &p->IdCardType);
     set_obj(obj, "IdentifiedCardNo", &p->IdentifiedCardNo);
     set_obj(obj, "CustType", &p->CustType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcVerifyFuturePasswordAndCustInfoField *p)
+static void set_obj(Object obj, CThostFtdcVerifyFuturePasswordAndCustInfoField *p)
 {
     set_obj(obj, "CustomerName", &p->CustomerName);
     set_obj(obj, "IdCardType", &p->IdCardType);
@@ -3969,7 +3966,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcVerifyFuturePasswordAndCustInf
     set_obj(obj, "Password", &p->Password);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcDepositResultInformField *p)
+static void set_obj(Object obj, CThostFtdcDepositResultInformField *p)
 {
     set_obj(obj, "DepositSeqNo", &p->DepositSeqNo);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -3979,7 +3976,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcDepositResultInformField *p)
     set_obj(obj, "ReturnCode", &p->ReturnCode);
     set_obj(obj, "DescrInfoForReturnCode", &p->DescrInfoForReturnCode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReqSyncKeyField *p)
+static void set_obj(Object obj, CThostFtdcReqSyncKeyField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4002,7 +3999,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqSyncKeyField *p)
     set_obj(obj, "RequestID", &p->RequestID);
     set_obj(obj, "TID", &p->TID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcRspSyncKeyField *p)
+static void set_obj(Object obj, CThostFtdcRspSyncKeyField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4027,7 +4024,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspSyncKeyField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcNotifyQueryAccountField *p)
+static void set_obj(Object obj, CThostFtdcNotifyQueryAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4070,7 +4067,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcNotifyQueryAccountField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTransferSerialField *p)
+static void set_obj(Object obj, CThostFtdcTransferSerialField *p)
 {
     set_obj(obj, "PlateSerial", &p->PlateSerial);
     set_obj(obj, "TradeDate", &p->TradeDate);
@@ -4101,14 +4098,14 @@ static void set_obj(Local<Object>& obj, CThostFtdcTransferSerialField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryTransferSerialField *p)
+static void set_obj(Object obj, CThostFtdcQryTransferSerialField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "AccountID", &p->AccountID);
     set_obj(obj, "BankID", &p->BankID);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcNotifyFutureSignInField *p)
+static void set_obj(Object obj, CThostFtdcNotifyFutureSignInField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4136,7 +4133,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcNotifyFutureSignInField *p)
     set_obj(obj, "PinKey", &p->PinKey);
     set_obj(obj, "MacKey", &p->MacKey);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcNotifyFutureSignOutField *p)
+static void set_obj(Object obj, CThostFtdcNotifyFutureSignOutField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4162,7 +4159,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcNotifyFutureSignOutField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcNotifySyncKeyField *p)
+static void set_obj(Object obj, CThostFtdcNotifySyncKeyField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4187,7 +4184,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcNotifySyncKeyField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryAccountregisterField *p)
+static void set_obj(Object obj, CThostFtdcQryAccountregisterField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "AccountID", &p->AccountID);
@@ -4195,7 +4192,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcQryAccountregisterField *p)
     set_obj(obj, "BankBranchID", &p->BankBranchID);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcAccountregisterField *p)
+static void set_obj(Object obj, CThostFtdcAccountregisterField *p)
 {
     set_obj(obj, "TradeDay", &p->TradeDay);
     set_obj(obj, "BankID", &p->BankID);
@@ -4215,7 +4212,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcAccountregisterField *p)
     set_obj(obj, "CustType", &p->CustType);
     set_obj(obj, "BankAccType", &p->BankAccType);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcOpenAccountField *p)
+static void set_obj(Object obj, CThostFtdcOpenAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4264,7 +4261,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcOpenAccountField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCancelAccountField *p)
+static void set_obj(Object obj, CThostFtdcCancelAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4313,7 +4310,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcCancelAccountField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcChangeAccountField *p)
+static void set_obj(Object obj, CThostFtdcChangeAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4358,7 +4355,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcChangeAccountField *p)
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcSecAgentACIDMapField *p)
+static void set_obj(Object obj, CThostFtdcSecAgentACIDMapField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -4366,67 +4363,67 @@ static void set_obj(Local<Object>& obj, CThostFtdcSecAgentACIDMapField *p)
     set_obj(obj, "CurrencyID", &p->CurrencyID);
     set_obj(obj, "BrokerSecAgentID", &p->BrokerSecAgentID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQrySecAgentACIDMapField *p)
+static void set_obj(Object obj, CThostFtdcQrySecAgentACIDMapField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "AccountID", &p->AccountID);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcUserRightsAssignField *p)
+static void set_obj(Object obj, CThostFtdcUserRightsAssignField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "DRIdentityID", &p->DRIdentityID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcBrokerUserRightAssignField *p)
+static void set_obj(Object obj, CThostFtdcBrokerUserRightAssignField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "DRIdentityID", &p->DRIdentityID);
     set_obj(obj, "Tradeable", &p->Tradeable);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcDRTransferField *p)
+static void set_obj(Object obj, CThostFtdcDRTransferField *p)
 {
     set_obj(obj, "OrigDRIdentityID", &p->OrigDRIdentityID);
     set_obj(obj, "DestDRIdentityID", &p->DestDRIdentityID);
     set_obj(obj, "OrigBrokerID", &p->OrigBrokerID);
     set_obj(obj, "DestBrokerID", &p->DestBrokerID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcFensUserInfoField *p)
+static void set_obj(Object obj, CThostFtdcFensUserInfoField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "LoginMode", &p->LoginMode);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcCurrTransferIdentityField *p)
+static void set_obj(Object obj, CThostFtdcCurrTransferIdentityField *p)
 {
     set_obj(obj, "IdentityID", &p->IdentityID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcLoginForbiddenUserField *p)
+static void set_obj(Object obj, CThostFtdcLoginForbiddenUserField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
     set_obj(obj, "IPAddress", &p->IPAddress);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcQryLoginForbiddenUserField *p)
+static void set_obj(Object obj, CThostFtdcQryLoginForbiddenUserField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcMulticastGroupInfoField *p)
+static void set_obj(Object obj, CThostFtdcMulticastGroupInfoField *p)
 {
     set_obj(obj, "GroupIP", &p->GroupIP);
     set_obj(obj, "GroupPort", &p->GroupPort);
     set_obj(obj, "SourceIP", &p->SourceIP);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcTradingAccountReserveField *p)
+static void set_obj(Object obj, CThostFtdcTradingAccountReserveField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "AccountID", &p->AccountID);
     set_obj(obj, "Reserve", &p->Reserve);
     set_obj(obj, "CurrencyID", &p->CurrencyID);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReserveOpenAccountConfirmField *p)
+static void set_obj(Object obj, CThostFtdcReserveOpenAccountConfirmField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4470,7 +4467,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReserveOpenAccountConfirmField
     set_obj(obj, "ErrorID", &p->ErrorID);
     set_obj(obj, "ErrorMsg", &p->ErrorMsg);
 }
-static void set_obj(Local<Object>& obj, CThostFtdcReserveOpenAccountField *p)
+static void set_obj(Object obj, CThostFtdcReserveOpenAccountField *p)
 {
     set_obj(obj, "TradeCode", &p->TradeCode);
     set_obj(obj, "BankID", &p->BankID);
@@ -4513,12 +4510,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcReserveOpenAccountField *p)
 
 // TODO 穿透式监管新增结构体
 
-static void set_obj(Local<Object>& obj, CThostFtdcRspUserAuthMethodField *p)
+static void set_obj(Object obj, CThostFtdcRspUserAuthMethodField *p)
 {
     set_obj(obj, "UsableAuthMethod", &p->UsableAuthMethod);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcRspGenUserCaptchaField *p)
+static void set_obj(Object obj, CThostFtdcRspGenUserCaptchaField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -4526,12 +4523,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcRspGenUserCaptchaField *p)
     set_obj(obj, "CaptchaInfo", &p->CaptchaInfo);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcRspGenUserTextField *p)
+static void set_obj(Object obj, CThostFtdcRspGenUserTextField *p)
 {
     set_obj(obj, "UserTextSeq", &p->UserTextSeq);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcSecAgentTradeInfoField *p)
+static void set_obj(Object obj, CThostFtdcSecAgentTradeInfoField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "BrokerSecAgentID", &p->BrokerSecAgentID);
@@ -4539,7 +4536,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSecAgentTradeInfoField *p)
     set_obj(obj, "LongCustomerName", &p->LongCustomerName);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcMulticastInstrumentField *p)
+static void set_obj(Object obj, CThostFtdcMulticastInstrumentField *p)
 {
     set_obj(obj, "TopicID", &p->TopicID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
@@ -4549,13 +4546,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcMulticastInstrumentField *p)
     set_obj(obj, "PriceTick", &p->PriceTick);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcQryMulticastInstrumentField *p)
+static void set_obj(Object obj, CThostFtdcQryMulticastInstrumentField *p)
 {
     set_obj(obj, "TopicID", &p->TopicID);
     set_obj(obj, "InstrumentID", &p->InstrumentID);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcUserSystemInfoField *p)
+static void set_obj(Object obj, CThostFtdcUserSystemInfoField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
@@ -4567,28 +4564,28 @@ static void set_obj(Local<Object>& obj, CThostFtdcUserSystemInfoField *p)
     set_obj(obj, "ClientAppID", &p->ClientAppID);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcReqUserAuthMethodField *p)
+static void set_obj(Object obj, CThostFtdcReqUserAuthMethodField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcReqGenUserCaptchaField *p)
+static void set_obj(Object obj, CThostFtdcReqGenUserCaptchaField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcReqGenUserTextField *p)
+static void set_obj(Object obj, CThostFtdcReqGenUserTextField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "UserID", &p->UserID);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithCaptchaField *p)
+static void set_obj(Object obj, CThostFtdcReqUserLoginWithCaptchaField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -4604,7 +4601,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithCaptchaField *
     set_obj(obj, "ClientIPPort", &p->ClientIPPort);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithTextField *p)
+static void set_obj(Object obj, CThostFtdcReqUserLoginWithTextField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -4620,7 +4617,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithTextField *p)
     set_obj(obj, "ClientIPPort", &p->ClientIPPort);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithOTPField *p)
+static void set_obj(Object obj, CThostFtdcReqUserLoginWithOTPField *p)
 {
     set_obj(obj, "TradingDay", &p->TradingDay);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -4636,13 +4633,13 @@ static void set_obj(Local<Object>& obj, CThostFtdcReqUserLoginWithOTPField *p)
     set_obj(obj, "ClientIPPort", &p->ClientIPPort);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcQrySecAgentTradeInfoField *p)
+static void set_obj(Object obj, CThostFtdcQrySecAgentTradeInfoField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "BrokerSecAgentID", &p->BrokerSecAgentID);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcSecAgentCheckModeField *p)
+static void set_obj(Object obj, CThostFtdcSecAgentCheckModeField *p)
 {
     set_obj(obj, "InvestorID", &p->InvestorID);
     set_obj(obj, "BrokerID", &p->BrokerID);
@@ -4651,7 +4648,7 @@ static void set_obj(Local<Object>& obj, CThostFtdcSecAgentCheckModeField *p)
     set_obj(obj, "CheckSelfAccount", &p->CheckSelfAccount);
 }
 
-static void set_obj(Local<Object>& obj, CThostFtdcQrySecAgentCheckModeField *p)
+static void set_obj(Object obj, CThostFtdcQrySecAgentCheckModeField *p)
 {
     set_obj(obj, "BrokerID", &p->BrokerID);
     set_obj(obj, "InvestorID", &p->InvestorID);
@@ -4659,12 +4656,12 @@ static void set_obj(Local<Object>& obj, CThostFtdcQrySecAgentCheckModeField *p)
 
 ////////////////////////////// set_struct /////////////////////////////////////////////
 
-static void set_struct(Local<Object>& obj, CThostFtdcDisseminationField *p)
+static void set_struct(Object obj, CThostFtdcDisseminationField *p)
 {
     set_struct(obj, "SequenceSeries", &p->SequenceSeries, sizeof(p->SequenceSeries));
     set_struct(obj, "SequenceNo", &p->SequenceNo, sizeof(p->SequenceNo));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginField *p)
+static void set_struct(Object obj, CThostFtdcReqUserLoginField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -4679,7 +4676,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginField *p)
     set_struct(obj, "LoginRemark", &p->LoginRemark, sizeof(p->LoginRemark));
     set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspUserLoginField *p)
+static void set_struct(Object obj, CThostFtdcRspUserLoginField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "LoginTime", &p->LoginTime, sizeof(p->LoginTime));
@@ -4695,17 +4692,17 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspUserLoginField *p)
     set_struct(obj, "FFEXTime", &p->FFEXTime, sizeof(p->FFEXTime));
     set_struct(obj, "INETime", &p->INETime, sizeof(p->INETime));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcUserLogoutField *p)
+static void set_struct(Object obj, CThostFtdcUserLogoutField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcForceUserLogoutField *p)
+static void set_struct(Object obj, CThostFtdcForceUserLogoutField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqAuthenticateField *p)
+static void set_struct(Object obj, CThostFtdcReqAuthenticateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -4713,7 +4710,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqAuthenticateField *p)
     set_struct(obj, "AuthCode", &p->AuthCode, sizeof(p->AuthCode));
     set_struct(obj, "AppID", &p->AppID, sizeof(p->AppID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspAuthenticateField *p)
+static void set_struct(Object obj, CThostFtdcRspAuthenticateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -4721,7 +4718,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspAuthenticateField *p)
     set_struct(obj, "AppID", &p->AppID, sizeof(p->AppID));
     set_struct(obj, "AppType", &p->AppType, sizeof(p->AppType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcAuthenticationInfoField *p)
+static void set_struct(Object obj, CThostFtdcAuthenticationInfoField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -4731,7 +4728,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcAuthenticationInfoField *p)
     set_struct(obj, "AppID", &p->AppID, sizeof(p->AppID));
     set_struct(obj, "AppType", &p->AppType, sizeof(p->AppType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferHeaderField *p)
+static void set_struct(Object obj, CThostFtdcTransferHeaderField *p)
 {
     set_struct(obj, "Version", &p->Version, sizeof(p->Version));
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
@@ -4747,7 +4744,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTransferHeaderField *p)
     set_struct(obj, "SessionID", &p->SessionID, sizeof(p->SessionID));
     set_struct(obj, "RequestID", &p->RequestID, sizeof(p->RequestID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferBankToFutureReqField *p)
+static void set_struct(Object obj, CThostFtdcTransferBankToFutureReqField *p)
 {
     set_struct(obj, "FutureAccount", &p->FutureAccount, sizeof(p->FutureAccount));
     set_struct(obj, "FuturePwdFlag", &p->FuturePwdFlag, sizeof(p->FuturePwdFlag));
@@ -4756,7 +4753,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTransferBankToFutureReqFiel
     set_struct(obj, "CustFee", &p->CustFee, sizeof(p->CustFee));
     set_struct(obj, "CurrencyCode", &p->CurrencyCode, sizeof(p->CurrencyCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferBankToFutureRspField *p)
+static void set_struct(Object obj, CThostFtdcTransferBankToFutureRspField *p)
 {
     set_struct(obj, "RetCode", &p->RetCode, sizeof(p->RetCode));
     set_struct(obj, "RetInfo", &p->RetInfo, sizeof(p->RetInfo));
@@ -4765,7 +4762,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTransferBankToFutureRspFiel
     set_struct(obj, "CustFee", &p->CustFee, sizeof(p->CustFee));
     set_struct(obj, "CurrencyCode", &p->CurrencyCode, sizeof(p->CurrencyCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferFutureToBankReqField *p)
+static void set_struct(Object obj, CThostFtdcTransferFutureToBankReqField *p)
 {
     set_struct(obj, "FutureAccount", &p->FutureAccount, sizeof(p->FutureAccount));
     set_struct(obj, "FuturePwdFlag", &p->FuturePwdFlag, sizeof(p->FuturePwdFlag));
@@ -4774,7 +4771,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTransferFutureToBankReqFiel
     set_struct(obj, "CustFee", &p->CustFee, sizeof(p->CustFee));
     set_struct(obj, "CurrencyCode", &p->CurrencyCode, sizeof(p->CurrencyCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferFutureToBankRspField *p)
+static void set_struct(Object obj, CThostFtdcTransferFutureToBankRspField *p)
 {
     set_struct(obj, "RetCode", &p->RetCode, sizeof(p->RetCode));
     set_struct(obj, "RetInfo", &p->RetInfo, sizeof(p->RetInfo));
@@ -4783,14 +4780,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcTransferFutureToBankRspFiel
     set_struct(obj, "CustFee", &p->CustFee, sizeof(p->CustFee));
     set_struct(obj, "CurrencyCode", &p->CurrencyCode, sizeof(p->CurrencyCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferQryBankReqField *p)
+static void set_struct(Object obj, CThostFtdcTransferQryBankReqField *p)
 {
     set_struct(obj, "FutureAccount", &p->FutureAccount, sizeof(p->FutureAccount));
     set_struct(obj, "FuturePwdFlag", &p->FuturePwdFlag, sizeof(p->FuturePwdFlag));
     set_struct(obj, "FutureAccPwd", &p->FutureAccPwd, sizeof(p->FutureAccPwd));
     set_struct(obj, "CurrencyCode", &p->CurrencyCode, sizeof(p->CurrencyCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferQryBankRspField *p)
+static void set_struct(Object obj, CThostFtdcTransferQryBankRspField *p)
 {
     set_struct(obj, "RetCode", &p->RetCode, sizeof(p->RetCode));
     set_struct(obj, "RetInfo", &p->RetInfo, sizeof(p->RetInfo));
@@ -4800,11 +4797,11 @@ static void set_struct(Local<Object>& obj, CThostFtdcTransferQryBankRspField *p)
     set_struct(obj, "FetchAmt", &p->FetchAmt, sizeof(p->FetchAmt));
     set_struct(obj, "CurrencyCode", &p->CurrencyCode, sizeof(p->CurrencyCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferQryDetailReqField *p)
+static void set_struct(Object obj, CThostFtdcTransferQryDetailReqField *p)
 {
     set_struct(obj, "FutureAccount", &p->FutureAccount, sizeof(p->FutureAccount));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferQryDetailRspField *p)
+static void set_struct(Object obj, CThostFtdcTransferQryDetailRspField *p)
 {
     set_struct(obj, "TradeDate", &p->TradeDate, sizeof(p->TradeDate));
     set_struct(obj, "TradeTime", &p->TradeTime, sizeof(p->TradeTime));
@@ -4821,18 +4818,18 @@ static void set_struct(Local<Object>& obj, CThostFtdcTransferQryDetailRspField *
     set_struct(obj, "TxAmount", &p->TxAmount, sizeof(p->TxAmount));
     set_struct(obj, "Flag", &p->Flag, sizeof(p->Flag));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspInfoField *p)
+static void set_struct(Object obj, CThostFtdcRspInfoField *p)
 {
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeField *p)
+static void set_struct(Object obj, CThostFtdcExchangeField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ExchangeName", &p->ExchangeName, sizeof(p->ExchangeName));
     set_struct(obj, "ExchangeProperty", &p->ExchangeProperty, sizeof(p->ExchangeProperty));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcProductField *p)
+static void set_struct(Object obj, CThostFtdcProductField *p)
 {
     set_struct(obj, "ProductID", &p->ProductID, sizeof(p->ProductID));
     set_struct(obj, "ProductName", &p->ProductName, sizeof(p->ProductName));
@@ -4852,7 +4849,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcProductField *p)
     set_struct(obj, "ExchangeProductID", &p->ExchangeProductID, sizeof(p->ExchangeProductID));
     set_struct(obj, "UnderlyingMultiple", &p->UnderlyingMultiple, sizeof(p->UnderlyingMultiple));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInstrumentField *p)
+static void set_struct(Object obj, CThostFtdcInstrumentField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
@@ -4886,14 +4883,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcInstrumentField *p)
     set_struct(obj, "UnderlyingMultiple", &p->UnderlyingMultiple, sizeof(p->UnderlyingMultiple));
     set_struct(obj, "CombinationType", &p->CombinationType, sizeof(p->CombinationType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerField *p)
+static void set_struct(Object obj, CThostFtdcBrokerField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "BrokerAbbr", &p->BrokerAbbr, sizeof(p->BrokerAbbr));
     set_struct(obj, "BrokerName", &p->BrokerName, sizeof(p->BrokerName));
     set_struct(obj, "IsActive", &p->IsActive, sizeof(p->IsActive));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTraderField *p)
+static void set_struct(Object obj, CThostFtdcTraderField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
@@ -4902,7 +4899,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTraderField *p)
     set_struct(obj, "InstallCount", &p->InstallCount, sizeof(p->InstallCount));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInvestorField *p)
+static void set_struct(Object obj, CThostFtdcInvestorField *p)
 {
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -4918,7 +4915,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInvestorField *p)
     set_struct(obj, "CommModelID", &p->CommModelID, sizeof(p->CommModelID));
     set_struct(obj, "MarginModelID", &p->MarginModelID, sizeof(p->MarginModelID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradingCodeField *p)
+static void set_struct(Object obj, CThostFtdcTradingCodeField *p)
 {
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -4927,32 +4924,32 @@ static void set_struct(Local<Object>& obj, CThostFtdcTradingCodeField *p)
     set_struct(obj, "IsActive", &p->IsActive, sizeof(p->IsActive));
     set_struct(obj, "ClientIDType", &p->ClientIDType, sizeof(p->ClientIDType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcPartBrokerField *p)
+static void set_struct(Object obj, CThostFtdcPartBrokerField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "IsActive", &p->IsActive, sizeof(p->IsActive));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSuperUserField *p)
+static void set_struct(Object obj, CThostFtdcSuperUserField *p)
 {
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "UserName", &p->UserName, sizeof(p->UserName));
     set_struct(obj, "Password", &p->Password, sizeof(p->Password));
     set_struct(obj, "IsActive", &p->IsActive, sizeof(p->IsActive));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSuperUserFunctionField *p)
+static void set_struct(Object obj, CThostFtdcSuperUserFunctionField *p)
 {
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "FunctionCode", &p->FunctionCode, sizeof(p->FunctionCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInvestorGroupField *p)
+static void set_struct(Object obj, CThostFtdcInvestorGroupField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorGroupID", &p->InvestorGroupID, sizeof(p->InvestorGroupID));
     set_struct(obj, "InvestorGroupName", &p->InvestorGroupName, sizeof(p->InvestorGroupName));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradingAccountField *p)
+static void set_struct(Object obj, CThostFtdcTradingAccountField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
@@ -5001,7 +4998,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTradingAccountField *p)
     set_struct(obj, "SpecProductPositionProfitByAlg", &p->SpecProductPositionProfitByAlg, sizeof(p->SpecProductPositionProfitByAlg));
     set_struct(obj, "SpecProductExchangeMargin", &p->SpecProductExchangeMargin, sizeof(p->SpecProductExchangeMargin));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInvestorPositionField *p)
+static void set_struct(Object obj, CThostFtdcInvestorPositionField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -5047,7 +5044,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInvestorPositionField *p)
     set_struct(obj, "StrikeFrozenAmount", &p->StrikeFrozenAmount, sizeof(p->StrikeFrozenAmount));
     set_struct(obj, "AbandonFrozen", &p->AbandonFrozen, sizeof(p->AbandonFrozen));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInstrumentMarginRateField *p)
+static void set_struct(Object obj, CThostFtdcInstrumentMarginRateField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -5060,7 +5057,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInstrumentMarginRateField *
     set_struct(obj, "ShortMarginRatioByVolume", &p->ShortMarginRatioByVolume, sizeof(p->ShortMarginRatioByVolume));
     set_struct(obj, "IsRelative", &p->IsRelative, sizeof(p->IsRelative));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInstrumentCommissionRateField *p)
+static void set_struct(Object obj, CThostFtdcInstrumentCommissionRateField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -5073,7 +5070,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInstrumentCommissionRateFie
     set_struct(obj, "CloseTodayRatioByMoney", &p->CloseTodayRatioByMoney, sizeof(p->CloseTodayRatioByMoney));
     set_struct(obj, "CloseTodayRatioByVolume", &p->CloseTodayRatioByVolume, sizeof(p->CloseTodayRatioByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcDepthMarketDataField *p)
+static void set_struct(Object obj, CThostFtdcDepthMarketDataField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
@@ -5120,7 +5117,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcDepthMarketDataField *p)
     set_struct(obj, "AveragePrice", &p->AveragePrice, sizeof(p->AveragePrice));
     set_struct(obj, "ActionDay", &p->ActionDay, sizeof(p->ActionDay));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInstrumentTradingRightField *p)
+static void set_struct(Object obj, CThostFtdcInstrumentTradingRightField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -5128,7 +5125,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInstrumentTradingRightField
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "TradingRight", &p->TradingRight, sizeof(p->TradingRight));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserField *p)
+static void set_struct(Object obj, CThostFtdcBrokerUserField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -5137,19 +5134,19 @@ static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserField *p)
     set_struct(obj, "IsActive", &p->IsActive, sizeof(p->IsActive));
     set_struct(obj, "IsUsingOTP", &p->IsUsingOTP, sizeof(p->IsUsingOTP));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserPasswordField *p)
+static void set_struct(Object obj, CThostFtdcBrokerUserPasswordField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "Password", &p->Password, sizeof(p->Password));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserFunctionField *p)
+static void set_struct(Object obj, CThostFtdcBrokerUserFunctionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "BrokerFunctionCode", &p->BrokerFunctionCode, sizeof(p->BrokerFunctionCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTraderOfferField *p)
+static void set_struct(Object obj, CThostFtdcTraderOfferField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
@@ -5171,7 +5168,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTraderOfferField *p)
     set_struct(obj, "MaxTradeID", &p->MaxTradeID, sizeof(p->MaxTradeID));
     set_struct(obj, "MaxOrderMessageReference", &p->MaxOrderMessageReference, sizeof(p->MaxOrderMessageReference));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSettlementInfoField *p)
+static void set_struct(Object obj, CThostFtdcSettlementInfoField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "SettlementID", &p->SettlementID, sizeof(p->SettlementID));
@@ -5182,7 +5179,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSettlementInfoField *p)
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInstrumentMarginRateAdjustField *p)
+static void set_struct(Object obj, CThostFtdcInstrumentMarginRateAdjustField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -5195,7 +5192,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInstrumentMarginRateAdjustF
     set_struct(obj, "ShortMarginRatioByVolume", &p->ShortMarginRatioByVolume, sizeof(p->ShortMarginRatioByVolume));
     set_struct(obj, "IsRelative", &p->IsRelative, sizeof(p->IsRelative));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeMarginRateField *p)
+static void set_struct(Object obj, CThostFtdcExchangeMarginRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
@@ -5205,7 +5202,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeMarginRateField *p)
     set_struct(obj, "ShortMarginRatioByMoney", &p->ShortMarginRatioByMoney, sizeof(p->ShortMarginRatioByMoney));
     set_struct(obj, "ShortMarginRatioByVolume", &p->ShortMarginRatioByVolume, sizeof(p->ShortMarginRatioByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeMarginRateAdjustField *p)
+static void set_struct(Object obj, CThostFtdcExchangeMarginRateAdjustField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
@@ -5223,7 +5220,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeMarginRateAdjustFie
     set_struct(obj, "NoShortMarginRatioByMoney", &p->NoShortMarginRatioByMoney, sizeof(p->NoShortMarginRatioByMoney));
     set_struct(obj, "NoShortMarginRatioByVolume", &p->NoShortMarginRatioByVolume, sizeof(p->NoShortMarginRatioByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeRateField *p)
+static void set_struct(Object obj, CThostFtdcExchangeRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "FromCurrencyID", &p->FromCurrencyID, sizeof(p->FromCurrencyID));
@@ -5231,25 +5228,25 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeRateField *p)
     set_struct(obj, "ToCurrencyID", &p->ToCurrencyID, sizeof(p->ToCurrencyID));
     set_struct(obj, "ExchangeRate", &p->ExchangeRate, sizeof(p->ExchangeRate));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSettlementRefField *p)
+static void set_struct(Object obj, CThostFtdcSettlementRefField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "SettlementID", &p->SettlementID, sizeof(p->SettlementID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCurrentTimeField *p)
+static void set_struct(Object obj, CThostFtdcCurrentTimeField *p)
 {
     set_struct(obj, "CurrDate", &p->CurrDate, sizeof(p->CurrDate));
     set_struct(obj, "CurrTime", &p->CurrTime, sizeof(p->CurrTime));
     set_struct(obj, "CurrMillisec", &p->CurrMillisec, sizeof(p->CurrMillisec));
     set_struct(obj, "ActionDay", &p->ActionDay, sizeof(p->ActionDay));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCommPhaseField *p)
+static void set_struct(Object obj, CThostFtdcCommPhaseField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "CommPhaseNo", &p->CommPhaseNo, sizeof(p->CommPhaseNo));
     set_struct(obj, "SystemID", &p->SystemID, sizeof(p->SystemID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcLoginInfoField *p)
+static void set_struct(Object obj, CThostFtdcLoginInfoField *p)
 {
     set_struct(obj, "FrontID", &p->FrontID, sizeof(p->FrontID));
     set_struct(obj, "SessionID", &p->SessionID, sizeof(p->SessionID));
@@ -5274,27 +5271,27 @@ static void set_struct(Local<Object>& obj, CThostFtdcLoginInfoField *p)
     set_struct(obj, "IsQryControl", &p->IsQryControl, sizeof(p->IsQryControl));
     set_struct(obj, "LoginRemark", &p->LoginRemark, sizeof(p->LoginRemark));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcLogoutAllField *p)
+static void set_struct(Object obj, CThostFtdcLogoutAllField *p)
 {
     set_struct(obj, "FrontID", &p->FrontID, sizeof(p->FrontID));
     set_struct(obj, "SessionID", &p->SessionID, sizeof(p->SessionID));
     set_struct(obj, "SystemName", &p->SystemName, sizeof(p->SystemName));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcFrontStatusField *p)
+static void set_struct(Object obj, CThostFtdcFrontStatusField *p)
 {
     set_struct(obj, "FrontID", &p->FrontID, sizeof(p->FrontID));
     set_struct(obj, "LastReportDate", &p->LastReportDate, sizeof(p->LastReportDate));
     set_struct(obj, "LastReportTime", &p->LastReportTime, sizeof(p->LastReportTime));
     set_struct(obj, "IsActive", &p->IsActive, sizeof(p->IsActive));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcUserPasswordUpdateField *p)
+static void set_struct(Object obj, CThostFtdcUserPasswordUpdateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "OldPassword", &p->OldPassword, sizeof(p->OldPassword));
     set_struct(obj, "NewPassword", &p->NewPassword, sizeof(p->NewPassword));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputOrderField *p)
+static void set_struct(Object obj, CThostFtdcInputOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5327,7 +5324,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputOrderField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOrderField *p)
+static void set_struct(Object obj, CThostFtdcOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5393,7 +5390,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcOrderField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeOrderField *p)
+static void set_struct(Object obj, CThostFtdcExchangeOrderField *p)
 {
     set_struct(obj, "OrderPriceType", &p->OrderPriceType, sizeof(p->OrderPriceType));
     set_struct(obj, "Direction", &p->Direction, sizeof(p->Direction));
@@ -5441,7 +5438,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeOrderField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeOrderInsertErrorField *p)
+static void set_struct(Object obj, CThostFtdcExchangeOrderInsertErrorField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
@@ -5451,7 +5448,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeOrderInsertErrorFie
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcInputOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5471,7 +5468,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputOrderActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5503,7 +5500,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcOrderActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcExchangeOrderActionField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "OrderSysID", &p->OrderSysID, sizeof(p->OrderSysID));
@@ -5525,7 +5522,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeOrderActionField *p
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeOrderActionErrorField *p)
+static void set_struct(Object obj, CThostFtdcExchangeOrderActionErrorField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "OrderSysID", &p->OrderSysID, sizeof(p->OrderSysID));
@@ -5536,7 +5533,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeOrderActionErrorFie
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeTradeField *p)
+static void set_struct(Object obj, CThostFtdcExchangeTradeField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TradeID", &p->TradeID, sizeof(p->TradeID));
@@ -5561,7 +5558,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeTradeField *p)
     set_struct(obj, "SequenceNo", &p->SequenceNo, sizeof(p->SequenceNo));
     set_struct(obj, "TradeSource", &p->TradeSource, sizeof(p->TradeSource));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradeField *p)
+static void set_struct(Object obj, CThostFtdcTradeField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5594,7 +5591,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTradeField *p)
     set_struct(obj, "BrokerOrderSeq", &p->BrokerOrderSeq, sizeof(p->BrokerOrderSeq));
     set_struct(obj, "TradeSource", &p->TradeSource, sizeof(p->TradeSource));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcUserSessionField *p)
+static void set_struct(Object obj, CThostFtdcUserSessionField *p)
 {
     set_struct(obj, "FrontID", &p->FrontID, sizeof(p->FrontID));
     set_struct(obj, "SessionID", &p->SessionID, sizeof(p->SessionID));
@@ -5609,7 +5606,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcUserSessionField *p)
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
     set_struct(obj, "LoginRemark", &p->LoginRemark, sizeof(p->LoginRemark));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQueryMaxOrderVolumeField *p)
+static void set_struct(Object obj, CThostFtdcQueryMaxOrderVolumeField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5619,14 +5616,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcQueryMaxOrderVolumeField *p
     set_struct(obj, "HedgeFlag", &p->HedgeFlag, sizeof(p->HedgeFlag));
     set_struct(obj, "MaxVolume", &p->MaxVolume, sizeof(p->MaxVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSettlementInfoConfirmField *p)
+static void set_struct(Object obj, CThostFtdcSettlementInfoConfirmField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ConfirmDate", &p->ConfirmDate, sizeof(p->ConfirmDate));
     set_struct(obj, "ConfirmTime", &p->ConfirmTime, sizeof(p->ConfirmTime));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncDepositField *p)
+static void set_struct(Object obj, CThostFtdcSyncDepositField *p)
 {
     set_struct(obj, "DepositSeqNo", &p->DepositSeqNo, sizeof(p->DepositSeqNo));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -5635,7 +5632,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncDepositField *p)
     set_struct(obj, "IsForce", &p->IsForce, sizeof(p->IsForce));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncFundMortgageField *p)
+static void set_struct(Object obj, CThostFtdcSyncFundMortgageField *p)
 {
     set_struct(obj, "MortgageSeqNo", &p->MortgageSeqNo, sizeof(p->MortgageSeqNo));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -5644,11 +5641,11 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncFundMortgageField *p)
     set_struct(obj, "MortgageAmount", &p->MortgageAmount, sizeof(p->MortgageAmount));
     set_struct(obj, "ToCurrencyID", &p->ToCurrencyID, sizeof(p->ToCurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerSyncField *p)
+static void set_struct(Object obj, CThostFtdcBrokerSyncField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncingInvestorField *p)
+static void set_struct(Object obj, CThostFtdcSyncingInvestorField *p)
 {
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -5664,7 +5661,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncingInvestorField *p)
     set_struct(obj, "CommModelID", &p->CommModelID, sizeof(p->CommModelID));
     set_struct(obj, "MarginModelID", &p->MarginModelID, sizeof(p->MarginModelID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncingTradingCodeField *p)
+static void set_struct(Object obj, CThostFtdcSyncingTradingCodeField *p)
 {
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -5673,13 +5670,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncingTradingCodeField *p)
     set_struct(obj, "IsActive", &p->IsActive, sizeof(p->IsActive));
     set_struct(obj, "ClientIDType", &p->ClientIDType, sizeof(p->ClientIDType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncingInvestorGroupField *p)
+static void set_struct(Object obj, CThostFtdcSyncingInvestorGroupField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorGroupID", &p->InvestorGroupID, sizeof(p->InvestorGroupID));
     set_struct(obj, "InvestorGroupName", &p->InvestorGroupName, sizeof(p->InvestorGroupName));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncingTradingAccountField *p)
+static void set_struct(Object obj, CThostFtdcSyncingTradingAccountField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
@@ -5728,7 +5725,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncingTradingAccountField 
     set_struct(obj, "SpecProductPositionProfitByAlg", &p->SpecProductPositionProfitByAlg, sizeof(p->SpecProductPositionProfitByAlg));
     set_struct(obj, "SpecProductExchangeMargin", &p->SpecProductExchangeMargin, sizeof(p->SpecProductExchangeMargin));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncingInvestorPositionField *p)
+static void set_struct(Object obj, CThostFtdcSyncingInvestorPositionField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -5774,7 +5771,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncingInvestorPositionFiel
     set_struct(obj, "StrikeFrozenAmount", &p->StrikeFrozenAmount, sizeof(p->StrikeFrozenAmount));
     set_struct(obj, "AbandonFrozen", &p->AbandonFrozen, sizeof(p->AbandonFrozen));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncingInstrumentMarginRateField *p)
+static void set_struct(Object obj, CThostFtdcSyncingInstrumentMarginRateField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -5787,7 +5784,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncingInstrumentMarginRate
     set_struct(obj, "ShortMarginRatioByVolume", &p->ShortMarginRatioByVolume, sizeof(p->ShortMarginRatioByVolume));
     set_struct(obj, "IsRelative", &p->IsRelative, sizeof(p->IsRelative));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncingInstrumentCommissionRateField *p)
+static void set_struct(Object obj, CThostFtdcSyncingInstrumentCommissionRateField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -5800,7 +5797,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncingInstrumentCommission
     set_struct(obj, "CloseTodayRatioByMoney", &p->CloseTodayRatioByMoney, sizeof(p->CloseTodayRatioByMoney));
     set_struct(obj, "CloseTodayRatioByVolume", &p->CloseTodayRatioByVolume, sizeof(p->CloseTodayRatioByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncingInstrumentTradingRightField *p)
+static void set_struct(Object obj, CThostFtdcSyncingInstrumentTradingRightField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -5808,7 +5805,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSyncingInstrumentTradingRig
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "TradingRight", &p->TradingRight, sizeof(p->TradingRight));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryOrderField *p)
+static void set_struct(Object obj, CThostFtdcQryOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5818,7 +5815,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryOrderField *p)
     set_struct(obj, "InsertTimeStart", &p->InsertTimeStart, sizeof(p->InsertTimeStart));
     set_struct(obj, "InsertTimeEnd", &p->InsertTimeEnd, sizeof(p->InsertTimeEnd));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryTradeField *p)
+static void set_struct(Object obj, CThostFtdcQryTradeField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5828,24 +5825,24 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryTradeField *p)
     set_struct(obj, "TradeTimeStart", &p->TradeTimeStart, sizeof(p->TradeTimeStart));
     set_struct(obj, "TradeTimeEnd", &p->TradeTimeEnd, sizeof(p->TradeTimeEnd));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInvestorPositionField *p)
+static void set_struct(Object obj, CThostFtdcQryInvestorPositionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryTradingAccountField *p)
+static void set_struct(Object obj, CThostFtdcQryTradingAccountField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInvestorField *p)
+static void set_struct(Object obj, CThostFtdcQryInvestorField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryTradingCodeField *p)
+static void set_struct(Object obj, CThostFtdcQryTradingCodeField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -5853,61 +5850,61 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryTradingCodeField *p)
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
     set_struct(obj, "ClientIDType", &p->ClientIDType, sizeof(p->ClientIDType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInvestorGroupField *p)
+static void set_struct(Object obj, CThostFtdcQryInvestorGroupField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInstrumentMarginRateField *p)
+static void set_struct(Object obj, CThostFtdcQryInstrumentMarginRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "HedgeFlag", &p->HedgeFlag, sizeof(p->HedgeFlag));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInstrumentCommissionRateField *p)
+static void set_struct(Object obj, CThostFtdcQryInstrumentCommissionRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInstrumentTradingRightField *p)
+static void set_struct(Object obj, CThostFtdcQryInstrumentTradingRightField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryBrokerField *p)
+static void set_struct(Object obj, CThostFtdcQryBrokerField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryTraderField *p)
+static void set_struct(Object obj, CThostFtdcQryTraderField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQrySuperUserFunctionField *p)
+static void set_struct(Object obj, CThostFtdcQrySuperUserFunctionField *p)
 {
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryUserSessionField *p)
+static void set_struct(Object obj, CThostFtdcQryUserSessionField *p)
 {
     set_struct(obj, "FrontID", &p->FrontID, sizeof(p->FrontID));
     set_struct(obj, "SessionID", &p->SessionID, sizeof(p->SessionID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryPartBrokerField *p)
+static void set_struct(Object obj, CThostFtdcQryPartBrokerField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryFrontStatusField *p)
+static void set_struct(Object obj, CThostFtdcQryFrontStatusField *p)
 {
     set_struct(obj, "FrontID", &p->FrontID, sizeof(p->FrontID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeOrderField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeOrderField *p)
 {
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
@@ -5915,94 +5912,94 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeOrderField *p)
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcQryOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeOrderActionField *p)
 {
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQrySuperUserField *p)
+static void set_struct(Object obj, CThostFtdcQrySuperUserField *p)
 {
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryProductField *p)
+static void set_struct(Object obj, CThostFtdcQryProductField *p)
 {
     set_struct(obj, "ProductID", &p->ProductID, sizeof(p->ProductID));
     set_struct(obj, "ProductClass", &p->ProductClass, sizeof(p->ProductClass));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInstrumentField *p)
+static void set_struct(Object obj, CThostFtdcQryInstrumentField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ExchangeInstID", &p->ExchangeInstID, sizeof(p->ExchangeInstID));
     set_struct(obj, "ProductID", &p->ProductID, sizeof(p->ProductID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryDepthMarketDataField *p)
+static void set_struct(Object obj, CThostFtdcQryDepthMarketDataField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryBrokerUserField *p)
+static void set_struct(Object obj, CThostFtdcQryBrokerUserField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryBrokerUserFunctionField *p)
+static void set_struct(Object obj, CThostFtdcQryBrokerUserFunctionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryTraderOfferField *p)
+static void set_struct(Object obj, CThostFtdcQryTraderOfferField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQrySyncDepositField *p)
+static void set_struct(Object obj, CThostFtdcQrySyncDepositField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "DepositSeqNo", &p->DepositSeqNo, sizeof(p->DepositSeqNo));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQrySettlementInfoField *p)
+static void set_struct(Object obj, CThostFtdcQrySettlementInfoField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeMarginRateField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeMarginRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "HedgeFlag", &p->HedgeFlag, sizeof(p->HedgeFlag));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeMarginRateAdjustField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeMarginRateAdjustField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "HedgeFlag", &p->HedgeFlag, sizeof(p->HedgeFlag));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeRateField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "FromCurrencyID", &p->FromCurrencyID, sizeof(p->FromCurrencyID));
     set_struct(obj, "ToCurrencyID", &p->ToCurrencyID, sizeof(p->ToCurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQrySyncFundMortgageField *p)
+static void set_struct(Object obj, CThostFtdcQrySyncFundMortgageField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "MortgageSeqNo", &p->MortgageSeqNo, sizeof(p->MortgageSeqNo));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryHisOrderField *p)
+static void set_struct(Object obj, CThostFtdcQryHisOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6014,7 +6011,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryHisOrderField *p)
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "SettlementID", &p->SettlementID, sizeof(p->SettlementID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrMiniMarginField *p)
+static void set_struct(Object obj, CThostFtdcOptionInstrMiniMarginField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6024,7 +6021,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrMiniMarginField 
     set_struct(obj, "ValueMethod", &p->ValueMethod, sizeof(p->ValueMethod));
     set_struct(obj, "IsRelative", &p->IsRelative, sizeof(p->IsRelative));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrMarginAdjustField *p)
+static void set_struct(Object obj, CThostFtdcOptionInstrMarginAdjustField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6040,7 +6037,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrMarginAdjustFiel
     set_struct(obj, "MShortMarginRatioByMoney", &p->MShortMarginRatioByMoney, sizeof(p->MShortMarginRatioByMoney));
     set_struct(obj, "MShortMarginRatioByVolume", &p->MShortMarginRatioByVolume, sizeof(p->MShortMarginRatioByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrCommRateField *p)
+static void set_struct(Object obj, CThostFtdcOptionInstrCommRateField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6055,7 +6052,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrCommRateField *p
     set_struct(obj, "StrikeRatioByMoney", &p->StrikeRatioByMoney, sizeof(p->StrikeRatioByMoney));
     set_struct(obj, "StrikeRatioByVolume", &p->StrikeRatioByVolume, sizeof(p->StrikeRatioByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrTradeCostField *p)
+static void set_struct(Object obj, CThostFtdcOptionInstrTradeCostField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6067,7 +6064,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrTradeCostField *
     set_struct(obj, "ExchFixedMargin", &p->ExchFixedMargin, sizeof(p->ExchFixedMargin));
     set_struct(obj, "ExchMiniMargin", &p->ExchMiniMargin, sizeof(p->ExchMiniMargin));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryOptionInstrTradeCostField *p)
+static void set_struct(Object obj, CThostFtdcQryOptionInstrTradeCostField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6076,19 +6073,19 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryOptionInstrTradeCostFiel
     set_struct(obj, "InputPrice", &p->InputPrice, sizeof(p->InputPrice));
     set_struct(obj, "UnderlyingPrice", &p->UnderlyingPrice, sizeof(p->UnderlyingPrice));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryOptionInstrCommRateField *p)
+static void set_struct(Object obj, CThostFtdcQryOptionInstrCommRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcIndexPriceField *p)
+static void set_struct(Object obj, CThostFtdcIndexPriceField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "ClosePrice", &p->ClosePrice, sizeof(p->ClosePrice));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputExecOrderField *p)
+static void set_struct(Object obj, CThostFtdcInputExecOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6112,7 +6109,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputExecOrderField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputExecOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcInputExecOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6130,7 +6127,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputExecOrderActionField *
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExecOrderField *p)
+static void set_struct(Object obj, CThostFtdcExecOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6177,7 +6174,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExecOrderField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExecOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcExecOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6208,7 +6205,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExecOrderActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExecOrderField *p)
+static void set_struct(Object obj, CThostFtdcQryExecOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6218,7 +6215,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryExecOrderField *p)
     set_struct(obj, "InsertTimeStart", &p->InsertTimeStart, sizeof(p->InsertTimeStart));
     set_struct(obj, "InsertTimeEnd", &p->InsertTimeEnd, sizeof(p->InsertTimeEnd));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeExecOrderField *p)
+static void set_struct(Object obj, CThostFtdcExchangeExecOrderField *p)
 {
     set_struct(obj, "Volume", &p->Volume, sizeof(p->Volume));
     set_struct(obj, "RequestID", &p->RequestID, sizeof(p->RequestID));
@@ -6251,7 +6248,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeExecOrderField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeExecOrderField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeExecOrderField *p)
 {
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
@@ -6259,13 +6256,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeExecOrderField *
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExecOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcQryExecOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeExecOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcExchangeExecOrderActionField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ExecOrderSysID", &p->ExecOrderSysID, sizeof(p->ExecOrderSysID));
@@ -6286,14 +6283,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeExecOrderActionFiel
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeExecOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeExecOrderActionField *p)
 {
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcErrExecOrderField *p)
+static void set_struct(Object obj, CThostFtdcErrExecOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6319,12 +6316,12 @@ static void set_struct(Local<Object>& obj, CThostFtdcErrExecOrderField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryErrExecOrderField *p)
+static void set_struct(Object obj, CThostFtdcQryErrExecOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcErrExecOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcErrExecOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6344,12 +6341,12 @@ static void set_struct(Local<Object>& obj, CThostFtdcErrExecOrderActionField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryErrExecOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcQryErrExecOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrTradingRightField *p)
+static void set_struct(Object obj, CThostFtdcOptionInstrTradingRightField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6358,14 +6355,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrTradingRightFiel
     set_struct(obj, "Direction", &p->Direction, sizeof(p->Direction));
     set_struct(obj, "TradingRight", &p->TradingRight, sizeof(p->TradingRight));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryOptionInstrTradingRightField *p)
+static void set_struct(Object obj, CThostFtdcQryOptionInstrTradingRightField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "Direction", &p->Direction, sizeof(p->Direction));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputForQuoteField *p)
+static void set_struct(Object obj, CThostFtdcInputForQuoteField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6377,7 +6374,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputForQuoteField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcForQuoteField *p)
+static void set_struct(Object obj, CThostFtdcForQuoteField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6403,7 +6400,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcForQuoteField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryForQuoteField *p)
+static void set_struct(Object obj, CThostFtdcQryForQuoteField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6412,7 +6409,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryForQuoteField *p)
     set_struct(obj, "InsertTimeStart", &p->InsertTimeStart, sizeof(p->InsertTimeStart));
     set_struct(obj, "InsertTimeEnd", &p->InsertTimeEnd, sizeof(p->InsertTimeEnd));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeForQuoteField *p)
+static void set_struct(Object obj, CThostFtdcExchangeForQuoteField *p)
 {
     set_struct(obj, "ForQuoteLocalID", &p->ForQuoteLocalID, sizeof(p->ForQuoteLocalID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
@@ -6427,7 +6424,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeForQuoteField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeForQuoteField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeForQuoteField *p)
 {
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
@@ -6435,7 +6432,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeForQuoteField *p
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputQuoteField *p)
+static void set_struct(Object obj, CThostFtdcInputQuoteField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6461,7 +6458,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputQuoteField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputQuoteActionField *p)
+static void set_struct(Object obj, CThostFtdcInputQuoteActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6480,7 +6477,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputQuoteActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQuoteField *p)
+static void set_struct(Object obj, CThostFtdcQuoteField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6533,7 +6530,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQuoteField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQuoteActionField *p)
+static void set_struct(Object obj, CThostFtdcQuoteActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6563,7 +6560,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQuoteActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryQuoteField *p)
+static void set_struct(Object obj, CThostFtdcQryQuoteField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6573,7 +6570,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryQuoteField *p)
     set_struct(obj, "InsertTimeStart", &p->InsertTimeStart, sizeof(p->InsertTimeStart));
     set_struct(obj, "InsertTimeEnd", &p->InsertTimeEnd, sizeof(p->InsertTimeEnd));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeQuoteField *p)
+static void set_struct(Object obj, CThostFtdcExchangeQuoteField *p)
 {
     set_struct(obj, "AskPrice", &p->AskPrice, sizeof(p->AskPrice));
     set_struct(obj, "BidPrice", &p->BidPrice, sizeof(p->BidPrice));
@@ -6610,7 +6607,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeQuoteField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeQuoteField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeQuoteField *p)
 {
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
@@ -6618,13 +6615,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeQuoteField *p)
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryQuoteActionField *p)
+static void set_struct(Object obj, CThostFtdcQryQuoteActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeQuoteActionField *p)
+static void set_struct(Object obj, CThostFtdcExchangeQuoteActionField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "QuoteSysID", &p->QuoteSysID, sizeof(p->QuoteSysID));
@@ -6643,14 +6640,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeQuoteActionField *p
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeQuoteActionField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeQuoteActionField *p)
 {
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrDeltaField *p)
+static void set_struct(Object obj, CThostFtdcOptionInstrDeltaField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6658,7 +6655,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcOptionInstrDeltaField *p)
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "Delta", &p->Delta, sizeof(p->Delta));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcForQuoteRspField *p)
+static void set_struct(Object obj, CThostFtdcForQuoteRspField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
@@ -6667,7 +6664,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcForQuoteRspField *p)
     set_struct(obj, "ActionDay", &p->ActionDay, sizeof(p->ActionDay));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcStrikeOffsetField *p)
+static void set_struct(Object obj, CThostFtdcStrikeOffsetField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6676,13 +6673,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcStrikeOffsetField *p)
     set_struct(obj, "Offset", &p->Offset, sizeof(p->Offset));
     set_struct(obj, "OffsetType", &p->OffsetType, sizeof(p->OffsetType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryStrikeOffsetField *p)
+static void set_struct(Object obj, CThostFtdcQryStrikeOffsetField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputBatchOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcInputBatchOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6696,7 +6693,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputBatchOrderActionField 
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBatchOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcBatchOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6720,7 +6717,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcBatchOrderActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeBatchOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcExchangeBatchOrderActionField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ActionDate", &p->ActionDate, sizeof(p->ActionDate));
@@ -6736,24 +6733,24 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeBatchOrderActionFie
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryBatchOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcQryBatchOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCombInstrumentGuardField *p)
+static void set_struct(Object obj, CThostFtdcCombInstrumentGuardField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "GuarantRatio", &p->GuarantRatio, sizeof(p->GuarantRatio));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryCombInstrumentGuardField *p)
+static void set_struct(Object obj, CThostFtdcQryCombInstrumentGuardField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInputCombActionField *p)
+static void set_struct(Object obj, CThostFtdcInputCombActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6768,7 +6765,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInputCombActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCombActionField *p)
+static void set_struct(Object obj, CThostFtdcCombActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -6798,14 +6795,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcCombActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryCombActionField *p)
+static void set_struct(Object obj, CThostFtdcQryCombActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeCombActionField *p)
+static void set_struct(Object obj, CThostFtdcExchangeCombActionField *p)
 {
     set_struct(obj, "Direction", &p->Direction, sizeof(p->Direction));
     set_struct(obj, "Volume", &p->Volume, sizeof(p->Volume));
@@ -6826,7 +6823,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcExchangeCombActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeCombActionField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeCombActionField *p)
 {
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "ClientID", &p->ClientID, sizeof(p->ClientID));
@@ -6834,23 +6831,23 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeCombActionField 
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcProductExchRateField *p)
+static void set_struct(Object obj, CThostFtdcProductExchRateField *p)
 {
     set_struct(obj, "ProductID", &p->ProductID, sizeof(p->ProductID));
     set_struct(obj, "QuoteCurrencyID", &p->QuoteCurrencyID, sizeof(p->QuoteCurrencyID));
     set_struct(obj, "ExchangeRate", &p->ExchangeRate, sizeof(p->ExchangeRate));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryProductExchRateField *p)
+static void set_struct(Object obj, CThostFtdcQryProductExchRateField *p)
 {
     set_struct(obj, "ProductID", &p->ProductID, sizeof(p->ProductID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryForQuoteParamField *p)
+static void set_struct(Object obj, CThostFtdcQryForQuoteParamField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcForQuoteParamField *p)
+static void set_struct(Object obj, CThostFtdcForQuoteParamField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
@@ -6858,7 +6855,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcForQuoteParamField *p)
     set_struct(obj, "LastPrice", &p->LastPrice, sizeof(p->LastPrice));
     set_struct(obj, "PriceInterval", &p->PriceInterval, sizeof(p->PriceInterval));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMMOptionInstrCommRateField *p)
+static void set_struct(Object obj, CThostFtdcMMOptionInstrCommRateField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6873,13 +6870,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcMMOptionInstrCommRateField 
     set_struct(obj, "StrikeRatioByMoney", &p->StrikeRatioByMoney, sizeof(p->StrikeRatioByMoney));
     set_struct(obj, "StrikeRatioByVolume", &p->StrikeRatioByVolume, sizeof(p->StrikeRatioByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryMMOptionInstrCommRateField *p)
+static void set_struct(Object obj, CThostFtdcQryMMOptionInstrCommRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMMInstrumentCommissionRateField *p)
+static void set_struct(Object obj, CThostFtdcMMInstrumentCommissionRateField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6892,13 +6889,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcMMInstrumentCommissionRateF
     set_struct(obj, "CloseTodayRatioByMoney", &p->CloseTodayRatioByMoney, sizeof(p->CloseTodayRatioByMoney));
     set_struct(obj, "CloseTodayRatioByVolume", &p->CloseTodayRatioByVolume, sizeof(p->CloseTodayRatioByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryMMInstrumentCommissionRateField *p)
+static void set_struct(Object obj, CThostFtdcQryMMInstrumentCommissionRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInstrumentOrderCommRateField *p)
+static void set_struct(Object obj, CThostFtdcInstrumentOrderCommRateField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -6908,13 +6905,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcInstrumentOrderCommRateFiel
     set_struct(obj, "OrderCommByVolume", &p->OrderCommByVolume, sizeof(p->OrderCommByVolume));
     set_struct(obj, "OrderActionCommByVolume", &p->OrderActionCommByVolume, sizeof(p->OrderActionCommByVolume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInstrumentOrderCommRateField *p)
+static void set_struct(Object obj, CThostFtdcQryInstrumentOrderCommRateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataField *p)
+static void set_struct(Object obj, CThostFtdcMarketDataField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
@@ -6940,7 +6937,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcMarketDataField *p)
     set_struct(obj, "UpdateMillisec", &p->UpdateMillisec, sizeof(p->UpdateMillisec));
     set_struct(obj, "ActionDay", &p->ActionDay, sizeof(p->ActionDay));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataBaseField *p)
+static void set_struct(Object obj, CThostFtdcMarketDataBaseField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "PreSettlementPrice", &p->PreSettlementPrice, sizeof(p->PreSettlementPrice));
@@ -6948,7 +6945,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcMarketDataBaseField *p)
     set_struct(obj, "PreOpenInterest", &p->PreOpenInterest, sizeof(p->PreOpenInterest));
     set_struct(obj, "PreDelta", &p->PreDelta, sizeof(p->PreDelta));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataStaticField *p)
+static void set_struct(Object obj, CThostFtdcMarketDataStaticField *p)
 {
     set_struct(obj, "OpenPrice", &p->OpenPrice, sizeof(p->OpenPrice));
     set_struct(obj, "HighestPrice", &p->HighestPrice, sizeof(p->HighestPrice));
@@ -6959,64 +6956,64 @@ static void set_struct(Local<Object>& obj, CThostFtdcMarketDataStaticField *p)
     set_struct(obj, "SettlementPrice", &p->SettlementPrice, sizeof(p->SettlementPrice));
     set_struct(obj, "CurrDelta", &p->CurrDelta, sizeof(p->CurrDelta));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataLastMatchField *p)
+static void set_struct(Object obj, CThostFtdcMarketDataLastMatchField *p)
 {
     set_struct(obj, "LastPrice", &p->LastPrice, sizeof(p->LastPrice));
     set_struct(obj, "Volume", &p->Volume, sizeof(p->Volume));
     set_struct(obj, "Turnover", &p->Turnover, sizeof(p->Turnover));
     set_struct(obj, "OpenInterest", &p->OpenInterest, sizeof(p->OpenInterest));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataBestPriceField *p)
+static void set_struct(Object obj, CThostFtdcMarketDataBestPriceField *p)
 {
     set_struct(obj, "BidPrice1", &p->BidPrice1, sizeof(p->BidPrice1));
     set_struct(obj, "BidVolume1", &p->BidVolume1, sizeof(p->BidVolume1));
     set_struct(obj, "AskPrice1", &p->AskPrice1, sizeof(p->AskPrice1));
     set_struct(obj, "AskVolume1", &p->AskVolume1, sizeof(p->AskVolume1));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataBid23Field *p)
+static void set_struct(Object obj, CThostFtdcMarketDataBid23Field *p)
 {
     set_struct(obj, "BidPrice2", &p->BidPrice2, sizeof(p->BidPrice2));
     set_struct(obj, "BidVolume2", &p->BidVolume2, sizeof(p->BidVolume2));
     set_struct(obj, "BidPrice3", &p->BidPrice3, sizeof(p->BidPrice3));
     set_struct(obj, "BidVolume3", &p->BidVolume3, sizeof(p->BidVolume3));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataAsk23Field *p)
+static void set_struct(Object obj, CThostFtdcMarketDataAsk23Field *p)
 {
     set_struct(obj, "AskPrice2", &p->AskPrice2, sizeof(p->AskPrice2));
     set_struct(obj, "AskVolume2", &p->AskVolume2, sizeof(p->AskVolume2));
     set_struct(obj, "AskPrice3", &p->AskPrice3, sizeof(p->AskPrice3));
     set_struct(obj, "AskVolume3", &p->AskVolume3, sizeof(p->AskVolume3));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataBid45Field *p)
+static void set_struct(Object obj, CThostFtdcMarketDataBid45Field *p)
 {
     set_struct(obj, "BidPrice4", &p->BidPrice4, sizeof(p->BidPrice4));
     set_struct(obj, "BidVolume4", &p->BidVolume4, sizeof(p->BidVolume4));
     set_struct(obj, "BidPrice5", &p->BidPrice5, sizeof(p->BidPrice5));
     set_struct(obj, "BidVolume5", &p->BidVolume5, sizeof(p->BidVolume5));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataAsk45Field *p)
+static void set_struct(Object obj, CThostFtdcMarketDataAsk45Field *p)
 {
     set_struct(obj, "AskPrice4", &p->AskPrice4, sizeof(p->AskPrice4));
     set_struct(obj, "AskVolume4", &p->AskVolume4, sizeof(p->AskVolume4));
     set_struct(obj, "AskPrice5", &p->AskPrice5, sizeof(p->AskPrice5));
     set_struct(obj, "AskVolume5", &p->AskVolume5, sizeof(p->AskVolume5));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataUpdateTimeField *p)
+static void set_struct(Object obj, CThostFtdcMarketDataUpdateTimeField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "UpdateTime", &p->UpdateTime, sizeof(p->UpdateTime));
     set_struct(obj, "UpdateMillisec", &p->UpdateMillisec, sizeof(p->UpdateMillisec));
     set_struct(obj, "ActionDay", &p->ActionDay, sizeof(p->ActionDay));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataExchangeField *p)
+static void set_struct(Object obj, CThostFtdcMarketDataExchangeField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSpecificInstrumentField *p)
+static void set_struct(Object obj, CThostFtdcSpecificInstrumentField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInstrumentStatusField *p)
+static void set_struct(Object obj, CThostFtdcInstrumentStatusField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ExchangeInstID", &p->ExchangeInstID, sizeof(p->ExchangeInstID));
@@ -7027,19 +7024,19 @@ static void set_struct(Local<Object>& obj, CThostFtdcInstrumentStatusField *p)
     set_struct(obj, "EnterTime", &p->EnterTime, sizeof(p->EnterTime));
     set_struct(obj, "EnterReason", &p->EnterReason, sizeof(p->EnterReason));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInstrumentStatusField *p)
+static void set_struct(Object obj, CThostFtdcQryInstrumentStatusField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ExchangeInstID", &p->ExchangeInstID, sizeof(p->ExchangeInstID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInvestorAccountField *p)
+static void set_struct(Object obj, CThostFtdcInvestorAccountField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcPositionProfitAlgorithmField *p)
+static void set_struct(Object obj, CThostFtdcPositionProfitAlgorithmField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
@@ -7047,32 +7044,32 @@ static void set_struct(Local<Object>& obj, CThostFtdcPositionProfitAlgorithmFiel
     set_struct(obj, "Memo", &p->Memo, sizeof(p->Memo));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcDiscountField *p)
+static void set_struct(Object obj, CThostFtdcDiscountField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "Discount", &p->Discount, sizeof(p->Discount));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryTransferBankField *p)
+static void set_struct(Object obj, CThostFtdcQryTransferBankField *p)
 {
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
     set_struct(obj, "BankBrchID", &p->BankBrchID, sizeof(p->BankBrchID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferBankField *p)
+static void set_struct(Object obj, CThostFtdcTransferBankField *p)
 {
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
     set_struct(obj, "BankBrchID", &p->BankBrchID, sizeof(p->BankBrchID));
     set_struct(obj, "BankName", &p->BankName, sizeof(p->BankName));
     set_struct(obj, "IsActive", &p->IsActive, sizeof(p->IsActive));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInvestorPositionDetailField *p)
+static void set_struct(Object obj, CThostFtdcQryInvestorPositionDetailField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInvestorPositionDetailField *p)
+static void set_struct(Object obj, CThostFtdcInvestorPositionDetailField *p)
 {
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -7101,14 +7098,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcInvestorPositionDetailField
     set_struct(obj, "CloseVolume", &p->CloseVolume, sizeof(p->CloseVolume));
     set_struct(obj, "CloseAmount", &p->CloseAmount, sizeof(p->CloseAmount));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradingAccountPasswordField *p)
+static void set_struct(Object obj, CThostFtdcTradingAccountPasswordField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
     set_struct(obj, "Password", &p->Password, sizeof(p->Password));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMDTraderOfferField *p)
+static void set_struct(Object obj, CThostFtdcMDTraderOfferField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
@@ -7130,39 +7127,39 @@ static void set_struct(Local<Object>& obj, CThostFtdcMDTraderOfferField *p)
     set_struct(obj, "MaxTradeID", &p->MaxTradeID, sizeof(p->MaxTradeID));
     set_struct(obj, "MaxOrderMessageReference", &p->MaxOrderMessageReference, sizeof(p->MaxOrderMessageReference));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryMDTraderOfferField *p)
+static void set_struct(Object obj, CThostFtdcQryMDTraderOfferField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
     set_struct(obj, "TraderID", &p->TraderID, sizeof(p->TraderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryNoticeField *p)
+static void set_struct(Object obj, CThostFtdcQryNoticeField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcNoticeField *p)
+static void set_struct(Object obj, CThostFtdcNoticeField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "Content", &p->Content, sizeof(p->Content));
     set_struct(obj, "SequenceLabel", &p->SequenceLabel, sizeof(p->SequenceLabel));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcUserRightField *p)
+static void set_struct(Object obj, CThostFtdcUserRightField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "UserRightType", &p->UserRightType, sizeof(p->UserRightType));
     set_struct(obj, "IsForbidden", &p->IsForbidden, sizeof(p->IsForbidden));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQrySettlementInfoConfirmField *p)
+static void set_struct(Object obj, CThostFtdcQrySettlementInfoConfirmField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcLoadSettlementInfoField *p)
+static void set_struct(Object obj, CThostFtdcLoadSettlementInfoField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerWithdrawAlgorithmField *p)
+static void set_struct(Object obj, CThostFtdcBrokerWithdrawAlgorithmField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "WithdrawAlgorithm", &p->WithdrawAlgorithm, sizeof(p->WithdrawAlgorithm));
@@ -7175,14 +7172,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcBrokerWithdrawAlgorithmFiel
     set_struct(obj, "FundMortgageRatio", &p->FundMortgageRatio, sizeof(p->FundMortgageRatio));
     set_struct(obj, "BalanceAlgorithm", &p->BalanceAlgorithm, sizeof(p->BalanceAlgorithm));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradingAccountPasswordUpdateV1Field *p)
+static void set_struct(Object obj, CThostFtdcTradingAccountPasswordUpdateV1Field *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "OldPassword", &p->OldPassword, sizeof(p->OldPassword));
     set_struct(obj, "NewPassword", &p->NewPassword, sizeof(p->NewPassword));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradingAccountPasswordUpdateField *p)
+static void set_struct(Object obj, CThostFtdcTradingAccountPasswordUpdateField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
@@ -7190,17 +7187,17 @@ static void set_struct(Local<Object>& obj, CThostFtdcTradingAccountPasswordUpdat
     set_struct(obj, "NewPassword", &p->NewPassword, sizeof(p->NewPassword));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryCombinationLegField *p)
+static void set_struct(Object obj, CThostFtdcQryCombinationLegField *p)
 {
     set_struct(obj, "CombInstrumentID", &p->CombInstrumentID, sizeof(p->CombInstrumentID));
     set_struct(obj, "LegID", &p->LegID, sizeof(p->LegID));
     set_struct(obj, "LegInstrumentID", &p->LegInstrumentID, sizeof(p->LegInstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQrySyncStatusField *p)
+static void set_struct(Object obj, CThostFtdcQrySyncStatusField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCombinationLegField *p)
+static void set_struct(Object obj, CThostFtdcCombinationLegField *p)
 {
     set_struct(obj, "CombInstrumentID", &p->CombInstrumentID, sizeof(p->CombInstrumentID));
     set_struct(obj, "LegID", &p->LegID, sizeof(p->LegID));
@@ -7209,17 +7206,17 @@ static void set_struct(Local<Object>& obj, CThostFtdcCombinationLegField *p)
     set_struct(obj, "LegMultiple", &p->LegMultiple, sizeof(p->LegMultiple));
     set_struct(obj, "ImplyLevel", &p->ImplyLevel, sizeof(p->ImplyLevel));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSyncStatusField *p)
+static void set_struct(Object obj, CThostFtdcSyncStatusField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "DataSyncStatus", &p->DataSyncStatus, sizeof(p->DataSyncStatus));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryLinkManField *p)
+static void set_struct(Object obj, CThostFtdcQryLinkManField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcLinkManField *p)
+static void set_struct(Object obj, CThostFtdcLinkManField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7234,13 +7231,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcLinkManField *p)
     set_struct(obj, "UOAZipCode", &p->UOAZipCode, sizeof(p->UOAZipCode));
     set_struct(obj, "PersonFullName", &p->PersonFullName, sizeof(p->PersonFullName));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryBrokerUserEventField *p)
+static void set_struct(Object obj, CThostFtdcQryBrokerUserEventField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "UserEventType", &p->UserEventType, sizeof(p->UserEventType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserEventField *p)
+static void set_struct(Object obj, CThostFtdcBrokerUserEventField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -7252,20 +7249,20 @@ static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserEventField *p)
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryContractBankField *p)
+static void set_struct(Object obj, CThostFtdcQryContractBankField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
     set_struct(obj, "BankBrchID", &p->BankBrchID, sizeof(p->BankBrchID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcContractBankField *p)
+static void set_struct(Object obj, CThostFtdcContractBankField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
     set_struct(obj, "BankBrchID", &p->BankBrchID, sizeof(p->BankBrchID));
     set_struct(obj, "BankName", &p->BankName, sizeof(p->BankName));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInvestorPositionCombineDetailField *p)
+static void set_struct(Object obj, CThostFtdcInvestorPositionCombineDetailField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "OpenDate", &p->OpenDate, sizeof(p->OpenDate));
@@ -7288,7 +7285,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcInvestorPositionCombineDeta
     set_struct(obj, "CombInstrumentID", &p->CombInstrumentID, sizeof(p->CombInstrumentID));
     set_struct(obj, "TradeGroupID", &p->TradeGroupID, sizeof(p->TradeGroupID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcParkedOrderField *p)
+static void set_struct(Object obj, CThostFtdcParkedOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7326,7 +7323,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcParkedOrderField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcParkedOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcParkedOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7351,33 +7348,33 @@ static void set_struct(Local<Object>& obj, CThostFtdcParkedOrderActionField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryParkedOrderField *p)
+static void set_struct(Object obj, CThostFtdcQryParkedOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryParkedOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcQryParkedOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRemoveParkedOrderField *p)
+static void set_struct(Object obj, CThostFtdcRemoveParkedOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ParkedOrderID", &p->ParkedOrderID, sizeof(p->ParkedOrderID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRemoveParkedOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcRemoveParkedOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ParkedOrderActionID", &p->ParkedOrderActionID, sizeof(p->ParkedOrderActionID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInvestorWithdrawAlgorithmField *p)
+static void set_struct(Object obj, CThostFtdcInvestorWithdrawAlgorithmField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -7386,23 +7383,23 @@ static void set_struct(Local<Object>& obj, CThostFtdcInvestorWithdrawAlgorithmFi
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
     set_struct(obj, "FundMortgageRatio", &p->FundMortgageRatio, sizeof(p->FundMortgageRatio));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInvestorPositionCombineDetailField *p)
+static void set_struct(Object obj, CThostFtdcQryInvestorPositionCombineDetailField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "CombInstrumentID", &p->CombInstrumentID, sizeof(p->CombInstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarketDataAveragePriceField *p)
+static void set_struct(Object obj, CThostFtdcMarketDataAveragePriceField *p)
 {
     set_struct(obj, "AveragePrice", &p->AveragePrice, sizeof(p->AveragePrice));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcVerifyInvestorPasswordField *p)
+static void set_struct(Object obj, CThostFtdcVerifyInvestorPasswordField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "Password", &p->Password, sizeof(p->Password));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcUserIPField *p)
+static void set_struct(Object obj, CThostFtdcUserIPField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -7410,7 +7407,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcUserIPField *p)
     set_struct(obj, "IPMask", &p->IPMask, sizeof(p->IPMask));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradingNoticeInfoField *p)
+static void set_struct(Object obj, CThostFtdcTradingNoticeInfoField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7419,7 +7416,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcTradingNoticeInfoField *p)
     set_struct(obj, "SequenceSeries", &p->SequenceSeries, sizeof(p->SequenceSeries));
     set_struct(obj, "SequenceNo", &p->SequenceNo, sizeof(p->SequenceNo));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradingNoticeField *p)
+static void set_struct(Object obj, CThostFtdcTradingNoticeField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorRange", &p->InvestorRange, sizeof(p->InvestorRange));
@@ -7430,17 +7427,17 @@ static void set_struct(Local<Object>& obj, CThostFtdcTradingNoticeField *p)
     set_struct(obj, "SequenceNo", &p->SequenceNo, sizeof(p->SequenceNo));
     set_struct(obj, "FieldContent", &p->FieldContent, sizeof(p->FieldContent));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryTradingNoticeField *p)
+static void set_struct(Object obj, CThostFtdcQryTradingNoticeField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryErrOrderField *p)
+static void set_struct(Object obj, CThostFtdcQryErrOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcErrOrderField *p)
+static void set_struct(Object obj, CThostFtdcErrOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7475,7 +7472,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcErrOrderField *p)
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcErrorConditionalOrderField *p)
+static void set_struct(Object obj, CThostFtdcErrorConditionalOrderField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7543,12 +7540,12 @@ static void set_struct(Local<Object>& obj, CThostFtdcErrorConditionalOrderField 
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
     set_struct(obj, "MacAddress", &p->MacAddress, sizeof(p->MacAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryErrOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcQryErrOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcErrOrderActionField *p)
+static void set_struct(Object obj, CThostFtdcErrOrderActionField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7582,17 +7579,17 @@ static void set_struct(Local<Object>& obj, CThostFtdcErrOrderActionField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryExchangeSequenceField *p)
+static void set_struct(Object obj, CThostFtdcQryExchangeSequenceField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcExchangeSequenceField *p)
+static void set_struct(Object obj, CThostFtdcExchangeSequenceField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "SequenceNo", &p->SequenceNo, sizeof(p->SequenceNo));
     set_struct(obj, "MarketStatus", &p->MarketStatus, sizeof(p->MarketStatus));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQueryMaxOrderVolumeWithPriceField *p)
+static void set_struct(Object obj, CThostFtdcQueryMaxOrderVolumeWithPriceField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7603,13 +7600,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcQueryMaxOrderVolumeWithPric
     set_struct(obj, "MaxVolume", &p->MaxVolume, sizeof(p->MaxVolume));
     set_struct(obj, "Price", &p->Price, sizeof(p->Price));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryBrokerTradingParamsField *p)
+static void set_struct(Object obj, CThostFtdcQryBrokerTradingParamsField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerTradingParamsField *p)
+static void set_struct(Object obj, CThostFtdcBrokerTradingParamsField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
@@ -7619,13 +7616,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcBrokerTradingParamsField *p
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
     set_struct(obj, "OptionRoyaltyPriceType", &p->OptionRoyaltyPriceType, sizeof(p->OptionRoyaltyPriceType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryBrokerTradingAlgosField *p)
+static void set_struct(Object obj, CThostFtdcQryBrokerTradingAlgosField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerTradingAlgosField *p)
+static void set_struct(Object obj, CThostFtdcBrokerTradingAlgosField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
@@ -7634,12 +7631,12 @@ static void set_struct(Local<Object>& obj, CThostFtdcBrokerTradingAlgosField *p)
     set_struct(obj, "FindMarginRateAlgoID", &p->FindMarginRateAlgoID, sizeof(p->FindMarginRateAlgoID));
     set_struct(obj, "HandleTradingAccountAlgoID", &p->HandleTradingAccountAlgoID, sizeof(p->HandleTradingAccountAlgoID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQueryBrokerDepositField *p)
+static void set_struct(Object obj, CThostFtdcQueryBrokerDepositField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerDepositField *p)
+static void set_struct(Object obj, CThostFtdcBrokerDepositField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -7655,11 +7652,11 @@ static void set_struct(Local<Object>& obj, CThostFtdcBrokerDepositField *p)
     set_struct(obj, "Reserve", &p->Reserve, sizeof(p->Reserve));
     set_struct(obj, "FrozenMargin", &p->FrozenMargin, sizeof(p->FrozenMargin));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryCFMMCBrokerKeyField *p)
+static void set_struct(Object obj, CThostFtdcQryCFMMCBrokerKeyField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCFMMCBrokerKeyField *p)
+static void set_struct(Object obj, CThostFtdcCFMMCBrokerKeyField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
@@ -7669,7 +7666,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcCFMMCBrokerKeyField *p)
     set_struct(obj, "CurrentKey", &p->CurrentKey, sizeof(p->CurrentKey));
     set_struct(obj, "KeyKind", &p->KeyKind, sizeof(p->KeyKind));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCFMMCTradingAccountKeyField *p)
+static void set_struct(Object obj, CThostFtdcCFMMCTradingAccountKeyField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
@@ -7677,12 +7674,12 @@ static void set_struct(Local<Object>& obj, CThostFtdcCFMMCTradingAccountKeyField
     set_struct(obj, "KeyID", &p->KeyID, sizeof(p->KeyID));
     set_struct(obj, "CurrentKey", &p->CurrentKey, sizeof(p->CurrentKey));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryCFMMCTradingAccountKeyField *p)
+static void set_struct(Object obj, CThostFtdcQryCFMMCTradingAccountKeyField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserOTPParamField *p)
+static void set_struct(Object obj, CThostFtdcBrokerUserOTPParamField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -7693,7 +7690,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserOTPParamField *p)
     set_struct(obj, "LastSuccess", &p->LastSuccess, sizeof(p->LastSuccess));
     set_struct(obj, "OTPType", &p->OTPType, sizeof(p->OTPType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcManualSyncBrokerUserOTPField *p)
+static void set_struct(Object obj, CThostFtdcManualSyncBrokerUserOTPField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -7701,29 +7698,29 @@ static void set_struct(Local<Object>& obj, CThostFtdcManualSyncBrokerUserOTPFiel
     set_struct(obj, "FirstOTP", &p->FirstOTP, sizeof(p->FirstOTP));
     set_struct(obj, "SecondOTP", &p->SecondOTP, sizeof(p->SecondOTP));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCommRateModelField *p)
+static void set_struct(Object obj, CThostFtdcCommRateModelField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "CommModelID", &p->CommModelID, sizeof(p->CommModelID));
     set_struct(obj, "CommModelName", &p->CommModelName, sizeof(p->CommModelName));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryCommRateModelField *p)
+static void set_struct(Object obj, CThostFtdcQryCommRateModelField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "CommModelID", &p->CommModelID, sizeof(p->CommModelID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMarginModelField *p)
+static void set_struct(Object obj, CThostFtdcMarginModelField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "MarginModelID", &p->MarginModelID, sizeof(p->MarginModelID));
     set_struct(obj, "MarginModelName", &p->MarginModelName, sizeof(p->MarginModelName));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryMarginModelField *p)
+static void set_struct(Object obj, CThostFtdcQryMarginModelField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "MarginModelID", &p->MarginModelID, sizeof(p->MarginModelID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcEWarrantOffsetField *p)
+static void set_struct(Object obj, CThostFtdcEWarrantOffsetField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -7734,21 +7731,21 @@ static void set_struct(Local<Object>& obj, CThostFtdcEWarrantOffsetField *p)
     set_struct(obj, "HedgeFlag", &p->HedgeFlag, sizeof(p->HedgeFlag));
     set_struct(obj, "Volume", &p->Volume, sizeof(p->Volume));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryEWarrantOffsetField *p)
+static void set_struct(Object obj, CThostFtdcQryEWarrantOffsetField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryInvestorProductGroupMarginField *p)
+static void set_struct(Object obj, CThostFtdcQryInvestorProductGroupMarginField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "ProductGroupID", &p->ProductGroupID, sizeof(p->ProductGroupID));
     set_struct(obj, "HedgeFlag", &p->HedgeFlag, sizeof(p->HedgeFlag));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcInvestorProductGroupMarginField *p)
+static void set_struct(Object obj, CThostFtdcInvestorProductGroupMarginField *p)
 {
     set_struct(obj, "ProductGroupID", &p->ProductGroupID, sizeof(p->ProductGroupID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -7778,12 +7775,12 @@ static void set_struct(Local<Object>& obj, CThostFtdcInvestorProductGroupMarginF
     set_struct(obj, "ShortExchOffsetAmount", &p->ShortExchOffsetAmount, sizeof(p->ShortExchOffsetAmount));
     set_struct(obj, "HedgeFlag", &p->HedgeFlag, sizeof(p->HedgeFlag));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQueryCFMMCTradingAccountTokenField *p)
+static void set_struct(Object obj, CThostFtdcQueryCFMMCTradingAccountTokenField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCFMMCTradingAccountTokenField *p)
+static void set_struct(Object obj, CThostFtdcCFMMCTradingAccountTokenField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "ParticipantID", &p->ParticipantID, sizeof(p->ParticipantID));
@@ -7791,18 +7788,18 @@ static void set_struct(Local<Object>& obj, CThostFtdcCFMMCTradingAccountTokenFie
     set_struct(obj, "KeyID", &p->KeyID, sizeof(p->KeyID));
     set_struct(obj, "Token", &p->Token, sizeof(p->Token));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryProductGroupField *p)
+static void set_struct(Object obj, CThostFtdcQryProductGroupField *p)
 {
     set_struct(obj, "ProductID", &p->ProductID, sizeof(p->ProductID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcProductGroupField *p)
+static void set_struct(Object obj, CThostFtdcProductGroupField *p)
 {
     set_struct(obj, "ProductID", &p->ProductID, sizeof(p->ProductID));
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "ProductGroupID", &p->ProductGroupID, sizeof(p->ProductGroupID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBulletinField *p)
+static void set_struct(Object obj, CThostFtdcBulletinField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
@@ -7817,7 +7814,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcBulletinField *p)
     set_struct(obj, "URLLink", &p->URLLink, sizeof(p->URLLink));
     set_struct(obj, "MarketID", &p->MarketID, sizeof(p->MarketID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryBulletinField *p)
+static void set_struct(Object obj, CThostFtdcQryBulletinField *p)
 {
     set_struct(obj, "ExchangeID", &p->ExchangeID, sizeof(p->ExchangeID));
     set_struct(obj, "BulletinID", &p->BulletinID, sizeof(p->BulletinID));
@@ -7825,7 +7822,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryBulletinField *p)
     set_struct(obj, "NewsType", &p->NewsType, sizeof(p->NewsType));
     set_struct(obj, "NewsUrgency", &p->NewsUrgency, sizeof(p->NewsUrgency));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqOpenAccountField *p)
+static void set_struct(Object obj, CThostFtdcReqOpenAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -7872,7 +7869,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqOpenAccountField *p)
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqCancelAccountField *p)
+static void set_struct(Object obj, CThostFtdcReqCancelAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -7919,7 +7916,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqCancelAccountField *p)
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqChangeAccountField *p)
+static void set_struct(Object obj, CThostFtdcReqChangeAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -7962,7 +7959,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqChangeAccountField *p)
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
     set_struct(obj, "Digest", &p->Digest, sizeof(p->Digest));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqTransferField *p)
+static void set_struct(Object obj, CThostFtdcReqTransferField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8008,7 +8005,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqTransferField *p)
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
     set_struct(obj, "TransferStatus", &p->TransferStatus, sizeof(p->TransferStatus));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspTransferField *p)
+static void set_struct(Object obj, CThostFtdcRspTransferField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8056,7 +8053,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspTransferField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqRepealField *p)
+static void set_struct(Object obj, CThostFtdcReqRepealField *p)
 {
     set_struct(obj, "RepealTimeInterval", &p->RepealTimeInterval, sizeof(p->RepealTimeInterval));
     set_struct(obj, "RepealedTimes", &p->RepealedTimes, sizeof(p->RepealedTimes));
@@ -8109,7 +8106,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqRepealField *p)
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
     set_struct(obj, "TransferStatus", &p->TransferStatus, sizeof(p->TransferStatus));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspRepealField *p)
+static void set_struct(Object obj, CThostFtdcRspRepealField *p)
 {
     set_struct(obj, "RepealTimeInterval", &p->RepealTimeInterval, sizeof(p->RepealTimeInterval));
     set_struct(obj, "RepealedTimes", &p->RepealedTimes, sizeof(p->RepealedTimes));
@@ -8164,7 +8161,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspRepealField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqQueryAccountField *p)
+static void set_struct(Object obj, CThostFtdcReqQueryAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8203,7 +8200,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqQueryAccountField *p)
     set_struct(obj, "RequestID", &p->RequestID, sizeof(p->RequestID));
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspQueryAccountField *p)
+static void set_struct(Object obj, CThostFtdcRspQueryAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8244,7 +8241,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspQueryAccountField *p)
     set_struct(obj, "BankUseAmount", &p->BankUseAmount, sizeof(p->BankUseAmount));
     set_struct(obj, "BankFetchAmount", &p->BankFetchAmount, sizeof(p->BankFetchAmount));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcFutureSignIOField *p)
+static void set_struct(Object obj, CThostFtdcFutureSignIOField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8268,7 +8265,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcFutureSignIOField *p)
     set_struct(obj, "RequestID", &p->RequestID, sizeof(p->RequestID));
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspFutureSignInField *p)
+static void set_struct(Object obj, CThostFtdcRspFutureSignInField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8296,7 +8293,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspFutureSignInField *p)
     set_struct(obj, "PinKey", &p->PinKey, sizeof(p->PinKey));
     set_struct(obj, "MacKey", &p->MacKey, sizeof(p->MacKey));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqFutureSignOutField *p)
+static void set_struct(Object obj, CThostFtdcReqFutureSignOutField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8320,7 +8317,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqFutureSignOutField *p)
     set_struct(obj, "RequestID", &p->RequestID, sizeof(p->RequestID));
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspFutureSignOutField *p)
+static void set_struct(Object obj, CThostFtdcRspFutureSignOutField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8346,7 +8343,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspFutureSignOutField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqQueryTradeResultBySerialField *p)
+static void set_struct(Object obj, CThostFtdcReqQueryTradeResultBySerialField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8375,7 +8372,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqQueryTradeResultBySerial
     set_struct(obj, "TradeAmount", &p->TradeAmount, sizeof(p->TradeAmount));
     set_struct(obj, "Digest", &p->Digest, sizeof(p->Digest));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspQueryTradeResultBySerialField *p)
+static void set_struct(Object obj, CThostFtdcRspQueryTradeResultBySerialField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8404,7 +8401,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspQueryTradeResultBySerial
     set_struct(obj, "TradeAmount", &p->TradeAmount, sizeof(p->TradeAmount));
     set_struct(obj, "Digest", &p->Digest, sizeof(p->Digest));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqDayEndFileReadyField *p)
+static void set_struct(Object obj, CThostFtdcReqDayEndFileReadyField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8421,12 +8418,12 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqDayEndFileReadyField *p)
     set_struct(obj, "FileBusinessCode", &p->FileBusinessCode, sizeof(p->FileBusinessCode));
     set_struct(obj, "Digest", &p->Digest, sizeof(p->Digest));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReturnResultField *p)
+static void set_struct(Object obj, CThostFtdcReturnResultField *p)
 {
     set_struct(obj, "ReturnCode", &p->ReturnCode, sizeof(p->ReturnCode));
     set_struct(obj, "DescrInfoForReturnCode", &p->DescrInfoForReturnCode, sizeof(p->DescrInfoForReturnCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcVerifyFuturePasswordField *p)
+static void set_struct(Object obj, CThostFtdcVerifyFuturePasswordField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8448,14 +8445,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcVerifyFuturePasswordField *
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcVerifyCustInfoField *p)
+static void set_struct(Object obj, CThostFtdcVerifyCustInfoField *p)
 {
     set_struct(obj, "CustomerName", &p->CustomerName, sizeof(p->CustomerName));
     set_struct(obj, "IdCardType", &p->IdCardType, sizeof(p->IdCardType));
     set_struct(obj, "IdentifiedCardNo", &p->IdentifiedCardNo, sizeof(p->IdentifiedCardNo));
     set_struct(obj, "CustType", &p->CustType, sizeof(p->CustType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcVerifyFuturePasswordAndCustInfoField *p)
+static void set_struct(Object obj, CThostFtdcVerifyFuturePasswordAndCustInfoField *p)
 {
     set_struct(obj, "CustomerName", &p->CustomerName, sizeof(p->CustomerName));
     set_struct(obj, "IdCardType", &p->IdCardType, sizeof(p->IdCardType));
@@ -8465,7 +8462,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcVerifyFuturePasswordAndCust
     set_struct(obj, "Password", &p->Password, sizeof(p->Password));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcDepositResultInformField *p)
+static void set_struct(Object obj, CThostFtdcDepositResultInformField *p)
 {
     set_struct(obj, "DepositSeqNo", &p->DepositSeqNo, sizeof(p->DepositSeqNo));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -8475,7 +8472,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcDepositResultInformField *p
     set_struct(obj, "ReturnCode", &p->ReturnCode, sizeof(p->ReturnCode));
     set_struct(obj, "DescrInfoForReturnCode", &p->DescrInfoForReturnCode, sizeof(p->DescrInfoForReturnCode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReqSyncKeyField *p)
+static void set_struct(Object obj, CThostFtdcReqSyncKeyField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8498,7 +8495,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqSyncKeyField *p)
     set_struct(obj, "RequestID", &p->RequestID, sizeof(p->RequestID));
     set_struct(obj, "TID", &p->TID, sizeof(p->TID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcRspSyncKeyField *p)
+static void set_struct(Object obj, CThostFtdcRspSyncKeyField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8523,7 +8520,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspSyncKeyField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcNotifyQueryAccountField *p)
+static void set_struct(Object obj, CThostFtdcNotifyQueryAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8566,7 +8563,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcNotifyQueryAccountField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTransferSerialField *p)
+static void set_struct(Object obj, CThostFtdcTransferSerialField *p)
 {
     set_struct(obj, "PlateSerial", &p->PlateSerial, sizeof(p->PlateSerial));
     set_struct(obj, "TradeDate", &p->TradeDate, sizeof(p->TradeDate));
@@ -8597,14 +8594,14 @@ static void set_struct(Local<Object>& obj, CThostFtdcTransferSerialField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryTransferSerialField *p)
+static void set_struct(Object obj, CThostFtdcQryTransferSerialField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcNotifyFutureSignInField *p)
+static void set_struct(Object obj, CThostFtdcNotifyFutureSignInField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8632,7 +8629,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcNotifyFutureSignInField *p)
     set_struct(obj, "PinKey", &p->PinKey, sizeof(p->PinKey));
     set_struct(obj, "MacKey", &p->MacKey, sizeof(p->MacKey));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcNotifyFutureSignOutField *p)
+static void set_struct(Object obj, CThostFtdcNotifyFutureSignOutField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8658,7 +8655,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcNotifyFutureSignOutField *p
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcNotifySyncKeyField *p)
+static void set_struct(Object obj, CThostFtdcNotifySyncKeyField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8683,7 +8680,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcNotifySyncKeyField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryAccountregisterField *p)
+static void set_struct(Object obj, CThostFtdcQryAccountregisterField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
@@ -8691,7 +8688,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcQryAccountregisterField *p)
     set_struct(obj, "BankBranchID", &p->BankBranchID, sizeof(p->BankBranchID));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcAccountregisterField *p)
+static void set_struct(Object obj, CThostFtdcAccountregisterField *p)
 {
     set_struct(obj, "TradeDay", &p->TradeDay, sizeof(p->TradeDay));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8711,7 +8708,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcAccountregisterField *p)
     set_struct(obj, "CustType", &p->CustType, sizeof(p->CustType));
     set_struct(obj, "BankAccType", &p->BankAccType, sizeof(p->BankAccType));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcOpenAccountField *p)
+static void set_struct(Object obj, CThostFtdcOpenAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8760,7 +8757,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcOpenAccountField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCancelAccountField *p)
+static void set_struct(Object obj, CThostFtdcCancelAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8809,7 +8806,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcCancelAccountField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcChangeAccountField *p)
+static void set_struct(Object obj, CThostFtdcChangeAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8854,7 +8851,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcChangeAccountField *p)
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcSecAgentACIDMapField *p)
+static void set_struct(Object obj, CThostFtdcSecAgentACIDMapField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -8862,67 +8859,67 @@ static void set_struct(Local<Object>& obj, CThostFtdcSecAgentACIDMapField *p)
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
     set_struct(obj, "BrokerSecAgentID", &p->BrokerSecAgentID, sizeof(p->BrokerSecAgentID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQrySecAgentACIDMapField *p)
+static void set_struct(Object obj, CThostFtdcQrySecAgentACIDMapField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcUserRightsAssignField *p)
+static void set_struct(Object obj, CThostFtdcUserRightsAssignField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "DRIdentityID", &p->DRIdentityID, sizeof(p->DRIdentityID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcBrokerUserRightAssignField *p)
+static void set_struct(Object obj, CThostFtdcBrokerUserRightAssignField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "DRIdentityID", &p->DRIdentityID, sizeof(p->DRIdentityID));
     set_struct(obj, "Tradeable", &p->Tradeable, sizeof(p->Tradeable));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcDRTransferField *p)
+static void set_struct(Object obj, CThostFtdcDRTransferField *p)
 {
     set_struct(obj, "OrigDRIdentityID", &p->OrigDRIdentityID, sizeof(p->OrigDRIdentityID));
     set_struct(obj, "DestDRIdentityID", &p->DestDRIdentityID, sizeof(p->DestDRIdentityID));
     set_struct(obj, "OrigBrokerID", &p->OrigBrokerID, sizeof(p->OrigBrokerID));
     set_struct(obj, "DestBrokerID", &p->DestBrokerID, sizeof(p->DestBrokerID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcFensUserInfoField *p)
+static void set_struct(Object obj, CThostFtdcFensUserInfoField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "LoginMode", &p->LoginMode, sizeof(p->LoginMode));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcCurrTransferIdentityField *p)
+static void set_struct(Object obj, CThostFtdcCurrTransferIdentityField *p)
 {
     set_struct(obj, "IdentityID", &p->IdentityID, sizeof(p->IdentityID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcLoginForbiddenUserField *p)
+static void set_struct(Object obj, CThostFtdcLoginForbiddenUserField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
     set_struct(obj, "IPAddress", &p->IPAddress, sizeof(p->IPAddress));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcQryLoginForbiddenUserField *p)
+static void set_struct(Object obj, CThostFtdcQryLoginForbiddenUserField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcMulticastGroupInfoField *p)
+static void set_struct(Object obj, CThostFtdcMulticastGroupInfoField *p)
 {
     set_struct(obj, "GroupIP", &p->GroupIP, sizeof(p->GroupIP));
     set_struct(obj, "GroupPort", &p->GroupPort, sizeof(p->GroupPort));
     set_struct(obj, "SourceIP", &p->SourceIP, sizeof(p->SourceIP));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcTradingAccountReserveField *p)
+static void set_struct(Object obj, CThostFtdcTradingAccountReserveField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "AccountID", &p->AccountID, sizeof(p->AccountID));
     set_struct(obj, "Reserve", &p->Reserve, sizeof(p->Reserve));
     set_struct(obj, "CurrencyID", &p->CurrencyID, sizeof(p->CurrencyID));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReserveOpenAccountConfirmField *p)
+static void set_struct(Object obj, CThostFtdcReserveOpenAccountConfirmField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -8966,7 +8963,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReserveOpenAccountConfirmFi
     set_struct(obj, "ErrorID", &p->ErrorID, sizeof(p->ErrorID));
     set_struct(obj, "ErrorMsg", &p->ErrorMsg, sizeof(p->ErrorMsg));
 }
-static void set_struct(Local<Object>& obj, CThostFtdcReserveOpenAccountField *p)
+static void set_struct(Object obj, CThostFtdcReserveOpenAccountField *p)
 {
     set_struct(obj, "TradeCode", &p->TradeCode, sizeof(p->TradeCode));
     set_struct(obj, "BankID", &p->BankID, sizeof(p->BankID));
@@ -9009,7 +9006,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReserveOpenAccountField *p)
 
 // TODO 穿透式监管新增结构体
 
-static void set_struct(Local<Object>& obj, CThostFtdcMulticastInstrumentField *p)
+static void set_struct(Object obj, CThostFtdcMulticastInstrumentField *p)
 {
     set_struct(obj, "TopicID", &p->TopicID, sizeof(p->TopicID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
@@ -9019,13 +9016,13 @@ static void set_struct(Local<Object>& obj, CThostFtdcMulticastInstrumentField *p
     set_struct(obj, "PriceTick", &p->PriceTick, sizeof(p->PriceTick));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcQryMulticastInstrumentField *p)
+static void set_struct(Object obj, CThostFtdcQryMulticastInstrumentField *p)
 {
     set_struct(obj, "TopicID", &p->TopicID, sizeof(p->TopicID));
     set_struct(obj, "InstrumentID", &p->InstrumentID, sizeof(p->InstrumentID));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcUserSystemInfoField *p)
+static void set_struct(Object obj, CThostFtdcUserSystemInfoField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -9037,28 +9034,28 @@ static void set_struct(Local<Object>& obj, CThostFtdcUserSystemInfoField *p)
     set_struct(obj, "ClientAppID", &p->ClientAppID, sizeof(p->ClientAppID));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcReqUserAuthMethodField *p)
+static void set_struct(Object obj, CThostFtdcReqUserAuthMethodField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcReqGenUserCaptchaField *p)
+static void set_struct(Object obj, CThostFtdcReqGenUserCaptchaField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcReqGenUserTextField *p)
+static void set_struct(Object obj, CThostFtdcReqGenUserTextField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithCaptchaField *p)
+static void set_struct(Object obj, CThostFtdcReqUserLoginWithCaptchaField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -9074,7 +9071,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithCaptchaFiel
     set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithTextField *p)
+static void set_struct(Object obj, CThostFtdcReqUserLoginWithTextField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -9090,7 +9087,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithTextField *
     set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithOTPField *p)
+static void set_struct(Object obj, CThostFtdcReqUserLoginWithOTPField *p)
 {
     set_struct(obj, "TradingDay", &p->TradingDay, sizeof(p->TradingDay));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -9106,18 +9103,18 @@ static void set_struct(Local<Object>& obj, CThostFtdcReqUserLoginWithOTPField *p
     set_struct(obj, "ClientIPPort", &p->ClientIPPort, sizeof(p->ClientIPPort));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcQrySecAgentTradeInfoField *p)
+static void set_struct(Object obj, CThostFtdcQrySecAgentTradeInfoField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "BrokerSecAgentID", &p->BrokerSecAgentID, sizeof(p->BrokerSecAgentID));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcRspUserAuthMethodField *p)
+static void set_struct(Object obj, CThostFtdcRspUserAuthMethodField *p)
 {
     set_struct(obj, "UsableAuthMethod", &p->UsableAuthMethod, sizeof(p->UsableAuthMethod));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcRspGenUserCaptchaField *p)
+static void set_struct(Object obj, CThostFtdcRspGenUserCaptchaField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "UserID", &p->UserID, sizeof(p->UserID));
@@ -9125,12 +9122,12 @@ static void set_struct(Local<Object>& obj, CThostFtdcRspGenUserCaptchaField *p)
     set_struct(obj, "CaptchaInfo", &p->CaptchaInfo, sizeof(p->CaptchaInfo));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcRspGenUserTextField *p)
+static void set_struct(Object obj, CThostFtdcRspGenUserTextField *p)
 {
     set_struct(obj, "UserTextSeq", &p->UserTextSeq, sizeof(p->UserTextSeq));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcSecAgentTradeInfoField *p)
+static void set_struct(Object obj, CThostFtdcSecAgentTradeInfoField *p)
 {
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
     set_struct(obj, "BrokerSecAgentID", &p->BrokerSecAgentID, sizeof(p->BrokerSecAgentID));
@@ -9138,7 +9135,7 @@ static void set_struct(Local<Object>& obj, CThostFtdcSecAgentTradeInfoField *p)
     set_struct(obj, "LongCustomerName", &p->LongCustomerName, sizeof(p->LongCustomerName));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcSecAgentCheckModeField *p)
+static void set_struct(Object obj, CThostFtdcSecAgentCheckModeField *p)
 {
     set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
     set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
@@ -9147,14 +9144,5 @@ static void set_struct(Local<Object>& obj, CThostFtdcSecAgentCheckModeField *p)
     set_struct(obj, "CheckSelfAccount", &p->CheckSelfAccount, sizeof(p->CheckSelfAccount));
 }
 
-static void set_struct(Local<Object>& obj, CThostFtdcQrySecAgentCheckModeField *p)
-{
-    set_struct(obj, "BrokerID", &p->BrokerID, sizeof(p->BrokerID));
-    set_struct(obj, "InvestorID", &p->InvestorID, sizeof(p->InvestorID));
-}
-
-};
-#endif
-
-
-
+static void set_struct(Object obj, CThostFtdcQrySecAgentCheckModeField *p)
+)
